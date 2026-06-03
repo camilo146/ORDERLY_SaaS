@@ -16,9 +16,9 @@ spring:
 
   jpa:
     hibernate:
-      # validate: Hibernate checks schema matches entities but never modifies it.
-      # Flyway (below) owns all schema changes in production.
-      ddl-auto: validate
+      # update: Hibernate creates/adds missing tables and columns without dropping existing data.
+      # Flyway still owns schema versioning; update is a safety net for initial deployments.
+      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
