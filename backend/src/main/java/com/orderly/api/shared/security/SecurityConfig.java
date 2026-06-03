@@ -111,14 +111,17 @@ public class SecurityConfig {
                         // vulnerability exists. Inline scripts and eval() are disallowed.
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
                                 "default-src 'self'; " +
-                                "script-src 'self'; " +
+                                // 'unsafe-inline' required: Zone.js (Angular runtime) uses inline
+                                // event handler patching that browsers report as CSP violations.
+                                "script-src 'self' 'unsafe-inline'; " +
                                 "style-src 'self' 'unsafe-inline'; " +
                                 "img-src 'self' data: blob: https:; " +
-                                "font-src 'self' data:; " +
-                                "connect-src 'self'; " +
+                                "font-src 'self' data: https://fonts.gstatic.com; " +
+                                // ws:/wss: allows WebSocket upgrade from same origin through nginx proxy.
+                                "connect-src 'self' ws: wss:; " +
                                 "frame-ancestors 'none'; " +
                                 "base-uri 'self'; " +
-                                "form-action 'self';")))
+                                "form-action 'self';"))))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(tenantContextFilter, JwtAuthenticationFilter.class);
 
