@@ -1,0 +1,168 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# ORDERLY — docker-compose de producción (DigitalOcean)
+# Uso: docker compose up -d --build
+# Requiere un archivo .env en la misma carpeta (ver .env.example)
+# ═══════════════════════════════════════════════════════════════════════════════
+version: '3.8'
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: orderly-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: orderly
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d orderly"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - orderly-network
+
+  # ── Redis ───────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: orderly-redis
+    restart: unless-stopped
+    command: >-
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - orderly-network
+
+  # ── Evolution API ───────────────────────────────────────────────────────────
+  evolution-api:
+    image: evoapicloud/evolution-api:latest
+    container_name: orderly-evolution
+    restart: unless-stopped
+    ports:
+      - "8085:8080"
+    environment:
+      - SERVER_URL=${EVOLUTION_PUBLIC_URL}
+      - SERVER_PORT=8080
+      - AUTHENTICATION_TYPE=apikey
+      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY}
+      - AUTHENTICATION_EXPOSE_IN_FETCH_INSTANCES=true
+      - DATABASE_PROVIDER=postgresql
+      - DATABASE_CONNECTION_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/evolution
+      - DATABASE_CONNECTION_CLIENT_NAME=evolution
+      - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
+      - DATABASE_SAVE_MESSAGE_UPDATE=true
+      - DATABASE_SAVE_DATA_CONTACTS=true
+      - DATABASE_SAVE_DATA_CHATS=true
+      - DATABASE_SAVE_DATA_LABELS=true
+      - DATABASE_SAVE_DATA_HISTORIC=true
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - CACHE_REDIS_PREFIX_KEY=evolution
+      - CACHE_REDIS_TTL=604800
+      - CACHE_LOCAL_ENABLED=false
+      - DEL_INSTANCE=false
+      - LOG_LEVEL=ERROR,WARN,INFO
+      - LOG_BAILEYS=warn
+    volumes:
+      - evolution_instances:/evolution/instances
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - orderly-network
+
+  # ── Backend (Spring Boot) ───────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: orderly-backend:latest
+    container_name: orderly-backend
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=postgres
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/orderly
+      - DATABASE_USERNAME=${POSTGRES_USER}
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - ORDERLY_JWT_SECRET=${ORDERLY_JWT_SECRET}
+      - ORDERLY_JWT_VALIDITY_MINUTES=${ORDERLY_JWT_VALIDITY_MINUTES:-60}
+      - ORDERLY_CORS_ORIGINS=${ORDERLY_CORS_ORIGINS}
+      - EVOLUTION_API_URL=http://evolution-api:8080
+      - EVOLUTION_API_KEY=${EVOLUTION_API_KEY}
+      - EVOLUTION_API_WEBHOOK_SECRET=${EVOLUTION_WEBHOOK_SECRET}
+      - APP_BASE_URL=${APP_BASE_URL}
+      - ORDERLY_UPLOAD_DIR=/app/uploads
+      - ORDERLY_SUPERADMIN_PASSWORD=${ORDERLY_SUPERADMIN_PASSWORD}
+      - ORDERLY_ADMIN_PASSWORD=${ORDERLY_ADMIN_PASSWORD}
+      - ORDERLY_OPERATOR_PASSWORD=${ORDERLY_OPERATOR_PASSWORD}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_SUCCESS_URL=${STRIPE_SUCCESS_URL}
+      - STRIPE_CANCEL_URL=${STRIPE_CANCEL_URL}
+      - STRIPE_PORTAL_RETURN_URL=${STRIPE_PORTAL_RETURN_URL}
+      - STRIPE_PRICE_STARTER_MONTHLY=${STRIPE_PRICE_STARTER_MONTHLY:-price_placeholder}
+      - STRIPE_PRICE_STARTER_ANNUAL=${STRIPE_PRICE_STARTER_ANNUAL:-price_placeholder}
+      - STRIPE_PRICE_GROWTH_MONTHLY=${STRIPE_PRICE_GROWTH_MONTHLY:-price_placeholder}
+      - STRIPE_PRICE_GROWTH_ANNUAL=${STRIPE_PRICE_GROWTH_ANNUAL:-price_placeholder}
+      - STRIPE_PRICE_BUSINESS_MONTHLY=${STRIPE_PRICE_BUSINESS_MONTHLY:-price_placeholder}
+      - STRIPE_PRICE_BUSINESS_ANNUAL=${STRIPE_PRICE_BUSINESS_ANNUAL:-price_placeholder}
+    volumes:
+      - backend_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      evolution-api:
+        condition: service_started
+    networks:
+      - orderly-network
+
+  # ── Frontend (Angular + Nginx) ──────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: orderly-frontend:latest
+    container_name: orderly-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Montar certs de Let's Encrypt si existen (opcional)
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+    networks:
+      - orderly-network
+
+networks:
+  orderly-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  evolution_instances:
+  backend_uploads:

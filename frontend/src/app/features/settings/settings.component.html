@@ -1,0 +1,479 @@
+<div class="settings-page">
+  <div class="page-header">
+    <div class="page-title-row">
+      <lucide-icon name="settings" [size]="20"></lucide-icon>
+      <h1>Configuración</h1>
+    </div>
+    <p class="subtitle">Gestiona tu canal de WhatsApp, mensajes y datos de negocio</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab() === 'whatsapp'" (click)="setTab('whatsapp')">
+      <lucide-icon name="message-circle" [size]="14"></lucide-icon> WhatsApp
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'messages'" (click)="setTab('messages')">
+      <lucide-icon name="file-text" [size]="14"></lucide-icon> Mensajes
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'business'" (click)="setTab('business')">
+      <lucide-icon name="store" [size]="14"></lucide-icon> Pagos aceptados
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'hours'" (click)="setTab('hours')">
+      <lucide-icon name="clock" [size]="14"></lucide-icon> Horarios
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'bot'" (click)="setTab('bot')">
+      <lucide-icon name="bot" [size]="14"></lucide-icon> Mascota del bot
+    </button>
+    <button class="tab" [class.active]="activeTab() === 'plan'" (click)="setTab('plan')">
+      <lucide-icon name="crown" [size]="14"></lucide-icon> Mi Plan
+    </button>
+  </div>
+
+  <!-- Feedback banners -->
+  @if (saved()) {
+    <div class="banner banner-success"><lucide-icon name="check-circle" [size]="14"></lucide-icon> Cambios guardados correctamente</div>
+  }
+  @if (error()) {
+    <div class="banner banner-error"><lucide-icon name="alert-triangle" [size]="14"></lucide-icon> {{ error() }}</div>
+  }
+
+  <!-- ── WhatsApp tab ───────────────────────────────────────────────────── -->
+  @if (activeTab() === 'whatsapp') {
+    <div class="card settings-card">
+      <div class="card-header-row">
+        <h3>Canal de WhatsApp</h3>
+        <span class="status-badge status-{{ channelStatus().toLowerCase().replace('_', '-') }}">
+          <lucide-icon name="wifi" [size]="12"></lucide-icon>
+          {{ statusLabel(channelStatus()) }}
+        </span>
+      </div>
+
+      <div class="channel-modes">
+        <div class="mode-card mode-card-local">
+          <div class="mode-title-row">
+            <lucide-icon name="qr-code" [size]="16"></lucide-icon>
+            <h4>Modo pruebas locales</h4>
+          </div>
+          <p>Usa QR con Evolution API para conectar el bot rápido en desarrollo o demos.</p>
+          <p class="mode-note">Sirve para pruebas con WhatsApp normal o WhatsApp Business en el teléfono, pero no es la integración oficial de producción.</p>
+        </div>
+
+        <div class="mode-card mode-card-meta">
+          <div class="mode-title-row">
+            <lucide-icon name="building-2" [size]="16"></lucide-icon>
+            <h4>Modo producción oficial</h4>
+          </div>
+          <p>Usa Meta WhatsApp Cloud API para operar como canal empresarial estable.</p>
+          <p class="mode-note">Aquí no existe QR de conexión: necesitas credenciales de Meta, Phone Number ID, token y webhook.</p>
+        </div>
+      </div>
+
+      <!-- Número del negocio -->
+      <div class="field">
+        <label>Número de WhatsApp del negocio</label>
+        <p class="field-hint">Ingresa el número que usará el bot (ej: 573001234567 con código de país, sin + ni espacios)</p>
+        <input type="tel" [(ngModel)]="phoneNumber" placeholder="573001234567" />
+      </div>
+
+      <div class="field">
+        <label>Nombre del negocio en WhatsApp</label>
+        <input type="text" [(ngModel)]="displayName" placeholder="Mi Negocio Oficial" />
+      </div>
+
+      <!-- Info Meta Cloud API -->
+      <div class="info-box">
+        <lucide-icon name="alert-triangle" [size]="16"></lucide-icon>
+        <div>
+          <strong>¿Se puede dejar igual para WhatsApp normal y Business?</strong>
+          <p>No exactamente. <strong>QR</strong> y <strong>Meta Cloud API</strong> son dos métodos distintos.</p>
+          <p>Para desarrollo local puedes usar el QR. Para producción con WhatsApp Business oficial debes usar Meta Cloud API.</p>
+          <p class="mode-warning">Recomendación: usa un número para pruebas por QR y otro número para producción en Meta. No conviene operar el mismo número en ambos métodos.</p>
+
+          <strong style="display:block; margin-top:10px;">Checklist para producción con Meta Cloud API</strong>
+          <p>Para producción, Orderly usa la <strong>Meta WhatsApp Cloud API</strong>. Necesitas:</p>
+          <ol>
+            <li>Una cuenta de <a href="https://business.facebook.com" target="_blank">Meta Business</a></li>
+            <li>Registrar tu número en el <a href="https://developers.facebook.com" target="_blank">portal de desarrolladores</a></li>
+            <li>Obtener tu <em>Phone Number ID</em> y <em>Access Token</em></li>
+            <li>Configurar el webhook de Orderly en tu app de Meta</li>
+          </ol>
+          <p style="margin-top:8px">Por ahora puedes guardar tu número y usar el QR para hacer pruebas locales del bot.</p>
+        </div>
+      </div>
+
+      <!-- QR para clientes -->
+      @if (phoneNumber) {
+        <div class="customer-qr-section">
+          <h4>
+            <lucide-icon name="qr-code" [size]="16"></lucide-icon>
+            QR para compartir con clientes
+          </h4>
+          <p class="field-hint">Tus clientes pueden escanear este código para iniciar un chat contigo en WhatsApp.</p>
+          <div class="qr-wrapper-small">
+            <img [src]="whatsappQrUrl" alt="QR de contacto" class="qr-image-small" />
+          </div>
+          <p class="qr-link-text">{{ 'wa.me/' + phoneNumber }}</p>
+        </div>
+      }
+
+      @if (channelStatus() === 'ACTIVE') {
+        <div class="connected-banner">
+          <lucide-icon name="check-circle" [size]="16"></lucide-icon>
+          Canal de WhatsApp activo
+        </div>
+      }
+
+      <!-- Conectar bot con QR real (Evolution API) -->
+      <div class="evolution-section">
+        <h4>
+          <lucide-icon name="qr-code" [size]="16"></lucide-icon>
+          Conectar bot por QR para pruebas
+        </h4>
+        <p class="field-hint">
+          Escanea este QR con la app de WhatsApp del teléfono para conectar el bot en entorno local.
+          Esto es útil para pruebas y demos. Para producción empresarial usa Meta Cloud API.
+          Requiere tener Evolution API en ejecución (ver <code>docker-compose.yml</code>).
+        </p>
+
+        @if (qrStatus() === 'idle') {
+          <button class="btn btn-outline" (click)="loadEvolutionQr()">
+            <lucide-icon name="qr-code" [size]="14"></lucide-icon>
+            Generar QR de conexión
+          </button>
+        }
+        @if (qrStatus() === 'loading') {
+          <div class="qr-loading">
+            <span class="spinner"></span> Generando QR...
+          </div>
+        }
+        @if (qrStatus() === 'connecting') {
+          <div class="qr-scan-area">
+            <img [src]="qrBase64()!" alt="WhatsApp QR" class="qr-image-real" />
+            <p class="qr-scan-hint">
+              <span class="spinner-small"></span>
+              Esperando que escanees el QR con tu WhatsApp...
+            </p>
+            <button class="btn btn-link" (click)="loadEvolutionQr()">Refrescar QR</button>
+          </div>
+        }
+        @if (qrStatus() === 'connected') {
+          <div class="connected-banner">
+            <lucide-icon name="check-circle" [size]="16"></lucide-icon>
+            ¡WhatsApp conectado! El bot está activo.
+          </div>
+          <button class="btn btn-link btn-danger" (click)="disconnectWhatsApp()">Desconectar</button>
+        }
+        @if (qrStatus() === 'unavailable') {
+          <div class="banner banner-error">
+            Evolution API no disponible. Asegúrate de ejecutar <code>docker-compose up -d</code> en la raíz del proyecto.
+          </div>
+          <button class="btn btn-outline" (click)="loadEvolutionQr()">Reintentar</button>
+        }
+      </div>
+
+      <div class="wa-actions">
+        <button class="btn btn-secondary" (click)="saveChannel()" [disabled]="loading()">
+          @if (loading()) { <span class="spinner"></span> } Guardar
+        </button>
+        <button class="btn btn-primary" (click)="confirmChannel()" [disabled]="loading() || channelStatus() === 'ACTIVE'">
+          @if (loading()) { <span class="spinner"></span> } Activar canal (testing)
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ── Messages tab ──────────────────────────────────────────────────── -->
+  @if (activeTab() === 'messages') {
+    <div class="templates-container">
+      @if (isLoadingTemplates()) {
+        <div class="empty-state"><p>Cargando plantillas...</p></div>
+      } @else if (templates().length === 0) {
+        <div class="empty-state"><p>No hay plantillas configuradas.</p></div>
+      }
+      @for (tpl of templates(); track tpl.eventType) {
+        <div class="card template-card">
+          <div class="template-header">
+            <span class="template-label">{{ tpl.label }}</span>
+            <span class="template-event">{{ tpl.eventType }}</span>
+          </div>
+
+          @if (editingTemplate?.eventType === tpl.eventType) {
+            <textarea
+              class="template-textarea"
+              rows="4"
+              [(ngModel)]="editingTemplate!.body">
+            </textarea>
+
+            <div class="template-vars">
+              <span class="vars-label">Variables disponibles:</span>
+              @for (v of ['customer_name','business_name','order_number','total','eta_minutes']; track v) {
+              <code class="var-chip">{{ '{{' + v + '}}' }}</code>
+              }
+            </div>
+
+            @if (previewText()) {
+              <div class="preview-box">
+                <span class="preview-label">Vista previa:</span>
+                <p>{{ previewText() }}</p>
+              </div>
+            }
+
+            <div class="template-actions">
+              <button class="btn btn-ghost btn-sm" (click)="previewTemplate()">👁 Vista previa</button>
+              <button class="btn btn-secondary btn-sm" (click)="cancelEdit()">Cancelar</button>
+              <button class="btn btn-primary btn-sm" (click)="saveTemplate()" [disabled]="loading()">
+                Guardar
+              </button>
+            </div>
+          } @else {
+            <p class="template-body">{{ tpl.body }}</p>
+            <button class="btn btn-secondary btn-sm" (click)="startEdit(tpl)">✏️ Editar</button>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ── Business payments tab ────────────────────────────────────────── -->
+  @if (activeTab() === 'business') {
+    <div class="card settings-card">
+      <h3>Métodos de pago aceptados</h3>
+      <p class="subtitle">Estos métodos se incluirán automáticamente en tus mensajes</p>
+
+      <div class="payment-grid">
+        @for (method of paymentMethodStates(); track method.name) {
+          <div class="payment-item">
+            <label class="payment-check" [class.checked]="method.checked">
+              <input type="checkbox"
+                [(ngModel)]="method.checked"
+                (change)="onPaymentChecked(method)" />
+              {{ method.name }}
+            </label>
+            @if (method.checked) {
+              <input type="text"
+                class="payment-detail-input input"
+                placeholder="Nro. cuenta / Detalle (Opcional)"
+                [(ngModel)]="method.details" />
+            }
+          </div>
+        }
+      </div>
+
+      <button class="btn btn-primary" style="margin-top: 20px;" (click)="saveChannel()" [disabled]="loading()">
+        @if (loading()) { <span class="spinner"></span> } Guardar
+      </button>
+    </div>
+  }
+
+  <!-- ── Business hours tab ──────────────────────────────────────────── -->
+  @if (activeTab() === 'hours') {
+    <div class="card settings-card">
+      <h3>Horarios de atención</h3>
+      <p class="subtitle">Define cuándo acepta pedidos tu negocio. Fuera de este horario el bot informará que no se reciben pedidos.</p>
+
+      @if (hoursSaved()) {
+        <div class="banner banner-success"><lucide-icon name="check-circle" [size]="14"></lucide-icon> Horarios guardados correctamente</div>
+      }
+
+      <div class="hours-table">
+        @for (schedule of hours(); track schedule.day; let i = $index) {
+          <div class="hours-row" [class.hours-row-closed]="schedule.closed">
+            <div class="hours-day">
+              <label class="hours-check">
+                <input type="checkbox"
+                  [checked]="!schedule.closed"
+                  (change)="updateHour(i, 'closed', !$any($event.target).checked)" />
+                {{ dayLabels[schedule.day] }}
+              </label>
+            </div>
+            @if (!schedule.closed) {
+              <div class="hours-times">
+                <input type="time"
+                  class="time-input"
+                  [value]="schedule.openTime"
+                  (change)="updateHour(i, 'openTime', $any($event.target).value)" />
+                <span class="time-sep">—</span>
+                <input type="time"
+                  class="time-input"
+                  [value]="schedule.closeTime"
+                  (change)="updateHour(i, 'closeTime', $any($event.target).value)" />
+              </div>
+            } @else {
+              <span class="hours-closed-label">Cerrado</span>
+            }
+          </div>
+        }
+      </div>
+
+      <button class="btn btn-primary" style="margin-top: 20px" (click)="saveHours()" [disabled]="isSavingHours()">
+        @if (isSavingHours()) { <span class="spinner"></span> } Guardar horarios
+      </button>
+    </div>
+  }
+
+  <!-- ── Bot identity tab ─────────────────────────────────────────────── -->
+  @if (activeTab() === 'bot') {
+    <div class="card settings-card">
+      <h3>🤖 Identidad del bot / Mascota</h3>
+      <p class="subtitle">Personaliza cómo se presenta tu asistente virtual a los clientes en WhatsApp.</p>
+
+      @if (botSaved()) {
+        <div class="banner banner-success">
+          <lucide-icon name="check-circle" [size]="14"></lucide-icon>
+          ¡Identidad guardada! El bot usará este nombre a partir del próximo mensaje.
+        </div>
+      }
+
+      <div class="field">
+        <label>Nombre de la mascota</label>
+        <p class="field-hint">Así se presentará el bot. Ej: <em>Topi</em>, <em>Max</em>, <em>Luna</em>, <em>Orderly</em>…</p>
+        <input type="text" [(ngModel)]="botName" placeholder="Orderly" maxlength="60" />
+      </div>
+
+      <div class="field">
+        <label>Emoji de la mascota</label>
+        <p class="field-hint">Un emoji que acompaña al nombre. Ej: 🤖 🦄 🐶 🦊 🛵</p>
+        <input type="text" [(ngModel)]="botEmoji" placeholder="🤖" maxlength="8"
+          style="max-width:90px; font-size:1.4rem; text-align:center;" />
+      </div>
+
+      <!-- Live preview -->
+      <div class="bot-preview-box">
+        <span class="bot-preview-label">Vista previa del saludo:</span>
+        <div class="bot-preview-bubble">
+          <span class="bot-preview-text">{{ botPreview }}</span>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="margin-top:20px" (click)="saveBotIdentity()" [disabled]="isSavingBot()">
+        @if (isSavingBot()) { <span class="spinner"></span> } Guardar mascota
+      </button>
+    </div>
+  }
+
+  <!-- ── Plan & Subscription tab ──────────────────────────────────────────── -->
+  @if (activeTab() === 'plan') {
+    @if (subLoading()) {
+      <div class="sub-loading"><lucide-icon name="loader" [size]="20"></lucide-icon> Cargando suscripción...</div>
+    } @else if (!subscription()) {
+      <div class="card settings-card sub-empty">
+        <lucide-icon name="crown" [size]="32"></lucide-icon>
+        <h3>Sin suscripción activa</h3>
+        <p>Aún no tienes un plan asignado. Contacta al equipo de Orderly para activar tu cuenta.</p>
+      </div>
+    } @else {
+      <div class="sub-grid">
+
+        <!-- Current plan card -->
+        <div class="card settings-card sub-plan-card">
+          <div class="sub-plan-header">
+            <div>
+              <div class="sub-plan-badge">Plan actual</div>
+              <h2 class="sub-plan-name">{{ subscription()!.planName ?? '—' }}</h2>
+              <span class="sub-status-badge sub-status-{{ subscription()!.status.toLowerCase() }}">
+                {{ subStatusLabel(subscription()!.status) }}
+              </span>
+            </div>
+            <lucide-icon name="crown" [size]="36" class="sub-crown-icon"></lucide-icon>
+          </div>
+          <div class="sub-dates">
+            @if (subscription()!.status === 'TRIAL') {
+              <div class="sub-date-item">
+                <span class="sub-date-label">Trial vence</span>
+                <span class="sub-date-value sub-date-warning">{{ formatDate(subscription()!.trialEndsAt) }}</span>
+              </div>
+            }
+            @if (subscription()!.currentPeriodEnd) {
+              <div class="sub-date-item">
+                <span class="sub-date-label">Próxima renovación</span>
+                <span class="sub-date-value">{{ formatDate(subscription()!.currentPeriodEnd) }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Usage card -->
+        @if (subscription()!.currentUsage) {
+          <div class="card settings-card sub-usage-card">
+            <h3 class="sub-section-title">Uso del mes actual</h3>
+            <div class="sub-usage-stat">
+              <div class="sub-usage-header">
+                <span>Pedidos este mes</span>
+                <span class="sub-usage-count">
+                  {{ subscription()!.currentUsage!.ordersCount }}
+                  / {{ subscription()!.currentUsage!.planOrderLimit || '∞' }}
+                </span>
+              </div>
+              <div class="sub-usage-bar-track">
+                <div class="sub-usage-bar-fill"
+                     [class.sub-usage-bar-warn]="usagePercent(subscription()!.currentUsage!.ordersCount, subscription()!.currentUsage!.planOrderLimit) > 80"
+                     [style.width.%]="usagePercent(subscription()!.currentUsage!.ordersCount, subscription()!.currentUsage!.planOrderLimit)">
+                </div>
+              </div>
+              <div class="sub-usage-meta">
+                <span>{{ subscription()!.currentUsage!.ordersRemaining }} restantes</span>
+                @if (subscription()!.currentUsage!.overageCount > 0) {
+                  <span class="sub-overage-badge">
+                    +{{ subscription()!.currentUsage!.overageCount }} extra
+                    ({{ formatCurrency(subscription()!.currentUsage!.overageChargeCop) }})
+                  </span>
+                }
+              </div>
+            </div>
+            <div class="sub-usage-dates">
+              <span>Período: {{ formatDate(subscription()!.currentUsage!.periodStart) }} → {{ formatDate(subscription()!.currentUsage!.periodEnd) }}</span>
+            </div>
+          </div>
+        }
+
+        <!-- Change plan -->
+        <div class="card settings-card sub-change-card">
+          <h3 class="sub-section-title">Cambiar plan</h3>
+          @if (allPlans().length > 0) {
+            <div class="plan-grid">
+              @for (plan of allPlans(); track plan.id) {
+                <div class="plan-option"
+                     [class.plan-option-selected]="selectedNewPlan() === plan.code"
+                     (click)="selectedNewPlan.set(plan.code)">
+                  <div class="plan-option-header">
+                    <span class="plan-option-name">{{ plan.name }}</span>
+                    @if (subscription()!.planCode === plan.code) {
+                      <span class="plan-option-current">Actual</span>
+                    }
+                  </div>
+                  <div class="plan-option-price">
+                    {{ formatCurrency(plan.monthlyPriceCop) }}<span class="plan-option-period">/mes</span>
+                  </div>
+                  <ul class="plan-option-features">
+                    <li><lucide-icon name="check" [size]="12"></lucide-icon> {{ plan.monthlyOrderLimit || '∞' }} pedidos/mes</li>
+                    <li><lucide-icon name="check" [size]="12"></lucide-icon> {{ plan.productLimit || '∞' }} productos</li>
+                    <li><lucide-icon name="check" [size]="12"></lucide-icon> {{ plan.userLimit || '∞' }} usuarios</li>
+                    @if (plan.analyticsEnabled) {
+                      <li><lucide-icon name="check" [size]="12"></lucide-icon> Analytics incluido</li>
+                    }
+                    @if (plan.prioritySupport) {
+                      <li><lucide-icon name="check" [size]="12"></lucide-icon> Soporte prioritario</li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+            <button class="btn btn-primary"
+                    [disabled]="changingPlan() || selectedNewPlan() === subscription()!.planCode"
+                    (click)="changePlan()">
+              @if (changingPlan()) {
+                <lucide-icon name="loader" [size]="14"></lucide-icon> Aplicando...
+              } @else {
+                Cambiar a plan seleccionado
+              }
+            </button>
+          } @else {
+            <p class="sub-no-plans">No hay planes disponibles.</p>
+          }
+        </div>
+
+      </div>
+    }
+  }
+</div>
+

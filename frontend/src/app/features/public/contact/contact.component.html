@@ -1,0 +1,116 @@
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="container-sm">
+      <span class="label">Contacto</span>
+      <h1>Estamos aquí<br>para ayudarte</h1>
+      <p>¿Tienes preguntas, necesitas una demo o quieres hablar sobre precios? Escríbenos y respondemos rápido.</p>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <section class="contact-section">
+    <div class="container">
+
+      <!-- Contact form -->
+      <div class="form-card">
+        @if (!sent()) {
+          <div class="form-header">
+            <h2>Envíanos un mensaje</h2>
+            <p>Te respondemos en menos de 24 horas en días hábiles.</p>
+          </div>
+
+          <form class="contact-form" (ngSubmit)="submit()">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nombre</label>
+                <input
+                  type="text"
+                  placeholder="Tu nombre completo"
+                  [value]="name()"
+                  (input)="name.set($any($event.target).value)"
+                  required />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  placeholder="tu@email.com"
+                  [value]="email()"
+                  (input)="email.set($any($event.target).value)"
+                  required />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Nombre del negocio <span class="optional">(opcional)</span></label>
+              <input
+                type="text"
+                placeholder="Ej: Pizzería Don Carlo"
+                [value]="business()"
+                (input)="business.set($any($event.target).value)" />
+            </div>
+
+            <div class="form-group">
+              <label>Mensaje</label>
+              <textarea
+                rows="5"
+                placeholder="¿En qué podemos ayudarte?"
+                [value]="message()"
+                (input)="message.set($any($event.target).value)"
+                required></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg submit-btn" [disabled]="!isValid() || sending()">
+              @if (sending()) {
+                <lucide-icon name="loader" [size]="16" class="spin" />
+                Enviando...
+              } @else {
+                Enviar mensaje
+                <lucide-icon name="arrow-right" [size]="16" />
+              }
+            </button>
+          </form>
+
+        } @else {
+          <div class="success-state">
+            <div class="success-icon">
+              <lucide-icon name="check-circle" [size]="32" />
+            </div>
+            <h2>¡Mensaje enviado!</h2>
+            <p>Gracias por contactarnos. Te responderemos en menos de 24 horas hábiles al email que nos indicaste.</p>
+            <a routerLink="/" class="btn btn-ghost btn-sm">← Volver al inicio</a>
+          </div>
+        }
+      </div>
+
+      <!-- Side channels -->
+      <div class="channels">
+        <h3>Otras formas de contacto</h3>
+        <div class="channels-list">
+          @for (ch of channels; track ch.title) {
+            <div class="channel-item">
+              <div class="channel-icon">
+                <lucide-icon [name]="ch.icon" [size]="18" />
+              </div>
+              <div class="channel-info">
+                <span class="channel-title">{{ ch.title }}</span>
+                <span class="channel-value">{{ ch.value }}</span>
+                <span class="channel-desc">{{ ch.desc }}</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="channels-note">
+          <lucide-icon name="zap" [size]="14" />
+          ¿Quieres verlo en acción? Crea tu cuenta gratis y explora la plataforma en minutos.
+          <a routerLink="/register">Comenzar gratis →</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>

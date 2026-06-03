@@ -1,0 +1,823 @@
+<!-- ── Toast messages ──────────────────────────────────────────────────── -->
+@if (error()) {
+  <div class="toast toast-error">
+    <lucide-icon name="alert-triangle" [size]="14"></lucide-icon>
+    <span>{{ error() }}</span>
+    <button class="toast-close" (click)="dismissError()"><lucide-icon name="x" [size]="12"></lucide-icon></button>
+  </div>
+}
+@if (successMsg()) {
+  <div class="toast toast-success">
+    <lucide-icon name="check-circle" [size]="14"></lucide-icon>
+    <span>{{ successMsg() }}</span>
+    <button class="toast-close" (click)="dismissSuccess()"><lucide-icon name="x" [size]="12"></lucide-icon></button>
+  </div>
+}
+
+<!-- ── Page header ──────────────────────────────────────────────────────── -->
+<div class="ceo-header">
+  <div class="ceo-header-left">
+    <div class="ceo-badge"><lucide-icon name="crown" [size]="14"></lucide-icon></div>
+    <div>
+      <h1 class="ceo-title">CEO Panel</h1>
+      <p class="ceo-subtitle">Control total de la plataforma ORDERLY</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    @if (activeTab() === 'businesses') {
+      <button class="btn btn-primary btn-sm" (click)="showCreateForm.set(!showCreateForm())">
+        <lucide-icon name="plus" [size]="14"></lucide-icon>
+        Nuevo negocio
+      </button>
+    }
+    <button class="btn btn-secondary btn-sm" (click)="loadDashboardData()">
+      <lucide-icon name="refresh-cw" [size]="13"></lucide-icon>
+    </button>
+  </div>
+</div>
+
+<!-- ── Tab navigation ──────────────────────────────────────────────────── -->
+<nav class="tab-nav">
+  <button class="tab-item" [class.active]="activeTab() === 'dashboard'" (click)="setTab('dashboard')">
+    <lucide-icon name="layout-dashboard" [size]="14"></lucide-icon> Dashboard
+  </button>
+  <button class="tab-item" [class.active]="activeTab() === 'businesses'" (click)="setTab('businesses')">
+    <lucide-icon name="building2" [size]="14"></lucide-icon> Negocios
+  </button>
+  <button class="tab-item" [class.active]="activeTab() === 'subscriptions'" (click)="setTab('subscriptions')">
+    <lucide-icon name="layers" [size]="14"></lucide-icon> Suscripciones
+  </button>
+  <button class="tab-item" [class.active]="activeTab() === 'emails'" (click)="setTab('emails')">
+    <lucide-icon name="mail" [size]="14"></lucide-icon> Emails
+  </button>
+  <button class="tab-item" [class.active]="activeTab() === 'audit'" (click)="setTab('audit')">
+    <lucide-icon name="activity" [size]="14"></lucide-icon> Auditoría
+  </button>
+</nav>
+
+@if (loading()) {
+  <div class="loading-wrap"><div class="spinner"></div><span>Cargando...</span></div>
+} @else {
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: DASHBOARD                                                      -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  @if (activeTab() === 'dashboard') {
+    @if (metrics(); as m) {
+
+      <!-- KPI Grid -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon icon-blue"><lucide-icon name="building2" [size]="16"></lucide-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-value">{{ m.totalBusinesses }}</span>
+            <span class="kpi-label">Negocios totales</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon icon-green"><lucide-icon name="check-circle" [size]="16"></lucide-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-value text-success">{{ m.activeBusinesses }}</span>
+            <span class="kpi-label">Activos</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon icon-orange"><lucide-icon name="clock" [size]="16"></lucide-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-value text-warning">{{ m.trialingBusinesses }}</span>
+            <span class="kpi-label">En trial</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon icon-red"><lucide-icon name="ban" [size]="16"></lucide-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-value text-danger">{{ m.suspendedBusinesses }}</span>
+            <span class="kpi-label">Suspendidos</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon icon-purple"><lucide-icon name="shopping-cart" [size]="16"></lucide-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-value">{{ m.ordersToday }}</span>
+            <span class="kpi-label">Pedidos hoy</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon icon-teal"><lucide-icon name="trending-up" [size]="16"></lucide-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-value">{{ m.ordersThisMonth }}</span>
+            <span class="kpi-label">Pedidos este mes</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon icon-green"><lucide-icon name="dollar-sign" [size]="16"></lucide-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-value text-success">{{ formatCurrency(m.revenueThisMonth) }}</span>
+            <span class="kpi-label">Ingresos este mes</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon icon-blue"><lucide-icon name="dollar-sign" [size]="16"></lucide-icon></div>
+          <div class="kpi-body">
+            <span class="kpi-value">{{ formatCurrency(m.revenueTotal) }}</span>
+            <span class="kpi-label">Ingresos totales</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats row: subscriptions -->
+      <div class="stats-row">
+        <div class="stat-pill stat-active">
+          <lucide-icon name="check-circle" [size]="13"></lucide-icon>
+          {{ m.activeSubscriptions }} suscripciones activas
+        </div>
+        <div class="stat-pill stat-trial">
+          <lucide-icon name="clock" [size]="13"></lucide-icon>
+          {{ m.trialSubscriptions }} en trial
+        </div>
+        <div class="stat-pill stat-suspended">
+          <lucide-icon name="ban" [size]="13"></lucide-icon>
+          {{ m.suspendedSubscriptions }} suspendidas
+        </div>
+        <div class="stat-pill stat-neutral">
+          <lucide-icon name="shopping-cart" [size]="13"></lucide-icon>
+          {{ m.ordersTotal }} pedidos totales
+        </div>
+      </div>
+
+      <!-- Recent activity -->
+      @if (m.recentActivity.length > 0) {
+        <div class="section-card">
+          <h3 class="section-heading">
+            <lucide-icon name="activity" [size]="14"></lucide-icon> Actividad reciente
+          </h3>
+          <div class="activity-list">
+            @for (log of m.recentActivity; track log.id) {
+              <div class="activity-item">
+                <div class="activity-dot"></div>
+                <div class="activity-content">
+                  <span class="activity-action">{{ actionLabel(log.action) }}</span>
+                  @if (log.targetName) {
+                    <span class="activity-target">— {{ log.targetName }}</span>
+                  }
+                  <span class="activity-meta">{{ log.actorEmail }} · {{ formatDate(log.createdAt) }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: BUSINESSES                                                     -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  @if (activeTab() === 'businesses') {
+
+    <!-- Create form -->
+    @if (showCreateForm()) {
+      <div class="form-card">
+        <h3 class="form-title">Registrar nuevo negocio</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label>Nombre del negocio</label>
+            <input type="text" [(ngModel)]="newBusiness.name" placeholder="Ej: Restaurante El Sabor" />
+          </div>
+          <div class="field">
+            <label>Tipo</label>
+            <select [(ngModel)]="newBusiness.businessType">
+              @for (bt of businessTypes; track bt.value) {
+                <option [value]="bt.value">{{ bt.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>País</label>
+            <input type="text" [(ngModel)]="newBusiness.countryCode" placeholder="CO" maxlength="2" />
+          </div>
+          <div class="field">
+            <label>Moneda</label>
+            <input type="text" [(ngModel)]="newBusiness.currencyCode" placeholder="COP" maxlength="3" />
+          </div>
+          <div class="field">
+            <label>Zona horaria</label>
+            <input type="text" [(ngModel)]="newBusiness.timezone" placeholder="America/Bogota" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-secondary btn-sm" (click)="showCreateForm.set(false)">Cancelar</button>
+          <button class="btn btn-primary btn-sm" [disabled]="saving() || !newBusiness.name" (click)="createBusiness()">
+            @if (saving()) { Creando... } @else { Crear negocio }
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <div class="search-wrap">
+        <lucide-icon name="search" [size]="14" class="search-icon"></lucide-icon>
+        <input class="search-input" type="text" placeholder="Buscar por nombre, email, slug..."
+               [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" />
+      </div>
+      <select class="filter-select" [ngModel]="filterStatus()" (ngModelChange)="filterStatus.set($event)">
+        @for (opt of statusOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+      @if (cancelledCount() > 0) {
+        <button class="btn btn-sm" [class.btn-secondary]="!showCancelled()" [class.btn-ghost]="showCancelled()"
+                (click)="showCancelled.set(!showCancelled())" title="Negocios eliminados (soft delete)">
+          <lucide-icon name="eye" [size]="13"></lucide-icon>
+          {{ showCancelled() ? 'Ocultar' : 'Ver' }} eliminados ({{ cancelledCount() }})
+        </button>
+      }
+      <span class="filter-count">{{ filteredBusinesses().length }} negocios</span>
+    </div>
+
+    <!-- Businesses table -->
+    @if (filteredBusinesses().length === 0) {
+      <div class="empty-state">
+        <lucide-icon name="building2" [size]="32"></lucide-icon>
+        <p>No hay negocios que coincidan con los filtros.</p>
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Negocio</th>
+              <th>Plan</th>
+              <th>Estado</th>
+              <th>Suscripción</th>
+              <th>Uso mensual</th>
+              <th>Pedidos</th>
+              <th>Ingresos</th>
+              <th>Registrado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (biz of filteredBusinesses(); track biz.id) {
+              <tr (click)="openBizPanel(biz)" class="table-row-clickable">
+                <td>
+                  <div class="biz-cell">
+                    <span class="biz-name">{{ biz.name }}</span>
+                    <span class="biz-meta">{{ biz.ownerEmail }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="plan-badge">{{ biz.plan?.name ?? '—' }}</span>
+                </td>
+                <td>
+                  <span class="status-badge" [attr.data-status]="biz.status">
+                    {{ statusLabel(biz.status) }}
+                  </span>
+                </td>
+                <td>
+                  @if (biz.subscription) {
+                    <span class="sub-status" [attr.data-sub]="biz.subscription.status">
+                      {{ biz.subscription.status }}
+                    </span>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+                <td>
+                  @if (biz.usage && biz.usage.orderLimit > 0) {
+                    <div class="usage-wrap">
+                      <div class="usage-bar">
+                        <div class="usage-fill" [style.width.%]="usagePercent(biz.usage)"
+                             [class.overage]="biz.usage.overageCount > 0"></div>
+                      </div>
+                      <span class="usage-text">{{ biz.usage.ordersThisMonth }}/{{ biz.usage.orderLimit }}</span>
+                    </div>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+                <td class="text-right">{{ biz.totalOrders }}</td>
+                <td class="text-right">{{ formatCurrency(biz.totalRevenue) }}</td>
+                <td class="text-muted">{{ formatDateShort(biz.createdAt) }}</td>
+                <td (click)="$event.stopPropagation()">
+                  <div class="action-btns">
+                    @if (biz.status === 'SUSPENDED') {
+                      <button class="btn-icon btn-icon-success" title="Activar" (click)="askConfirm('activate', biz)">
+                        <lucide-icon name="user-check" [size]="13"></lucide-icon>
+                      </button>
+                    } @else if (biz.status !== 'CANCELLED') {
+                      <button class="btn-icon btn-icon-warning" title="Suspender" (click)="askConfirm('suspend', biz)">
+                        <lucide-icon name="ban" [size]="13"></lucide-icon>
+                      </button>
+                    }
+                    <button class="btn-icon" title="Cambiar plan" (click)="openPlanModal(biz)">
+                      <lucide-icon name="layers" [size]="13"></lucide-icon>
+                    </button>
+                    <button class="btn-icon" title="Ver detalles" (click)="openBizPanel(biz)">
+                      <lucide-icon name="eye" [size]="13"></lucide-icon>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: SUBSCRIPTIONS                                                  -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  @if (activeTab() === 'subscriptions') {
+    <div class="section-card">
+      <h3 class="section-heading">
+        <lucide-icon name="layers" [size]="14"></lucide-icon> Catálogo de planes
+      </h3>
+      <div class="plans-grid-rich">
+        @for (plan of catalogPlans(); track plan.id) {
+          <div class="plan-card-rich">
+            <div class="plan-card-header">
+              <div class="plan-name">{{ plan.name }}</div>
+              <div class="plan-code-badge">{{ plan.code }}</div>
+            </div>
+            <div class="plan-price-row">
+              <span class="plan-price">{{ formatCurrency(plan.monthlyPriceCop) }}</span>
+              <span class="plan-period">/mes COP</span>
+            </div>
+            <div class="plan-price-usd">USD {{ plan.monthlyPriceUsd | number:'1.2-2' }}/mes</div>
+            <div class="plan-limits">
+              <div class="plan-limit-row">
+                <lucide-icon name="shopping-cart" [size]="12"></lucide-icon>
+                <span>{{ plan.monthlyOrderLimit || '∞' }} pedidos/mes</span>
+              </div>
+              <div class="plan-limit-row">
+                <lucide-icon name="package" [size]="12"></lucide-icon>
+                <span>{{ plan.productLimit || '∞' }} productos</span>
+              </div>
+              <div class="plan-limit-row">
+                <lucide-icon name="users" [size]="12"></lucide-icon>
+                <span>{{ plan.userLimit || '∞' }} usuarios</span>
+              </div>
+              <div class="plan-limit-row">
+                <lucide-icon name="clock" [size]="12"></lucide-icon>
+                <span>{{ plan.trialDays }}d de trial</span>
+              </div>
+              @if (plan.overageRateCop > 0) {
+                <div class="plan-limit-row plan-overage">
+                  <lucide-icon name="zap" [size]="12"></lucide-icon>
+                  <span>Overage: {{ formatCurrency(plan.overageRateCop) }}/bloque ({{ plan.overageBlockSize }} pedidos)</span>
+                </div>
+              }
+            </div>
+            <div class="plan-features">
+              @if (plan.analyticsEnabled) { <span class="feature-pill">Analytics</span> }
+              @if (plan.multiLocation) { <span class="feature-pill">Multi-sede</span> }
+              @if (plan.customBranding) { <span class="feature-pill">Branding</span> }
+              @if (plan.prioritySupport) { <span class="feature-pill">Soporte VIP</span> }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="section-card">
+      <h3 class="section-heading">
+        <lucide-icon name="building2" [size]="14"></lucide-icon> Negocios por suscripción
+      </h3>
+      @if (businesses().length === 0) {
+        <p class="text-muted">Carga negocios en la pestaña Negocios primero.</p>
+      } @else {
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Negocio</th>
+                <th>Plan</th>
+                <th>Estado sub.</th>
+                <th>Fin período</th>
+                <th>Trial vence</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (biz of businesses(); track biz.id) {
+                <tr>
+                  <td>
+                    <span class="biz-name">{{ biz.name }}</span>
+                  </td>
+                  <td><span class="plan-badge">{{ biz.plan?.name ?? '—' }}</span></td>
+                  <td>
+                    @if (biz.subscription) {
+                      <span class="sub-status" [attr.data-sub]="biz.subscription.status">
+                        {{ biz.subscription.status }}
+                      </span>
+                    } @else { <span class="text-muted">—</span> }
+                  </td>
+                  <td class="text-muted">{{ formatDateShort(biz.subscription?.currentPeriodEnd) }}</td>
+                  <td class="text-muted">{{ formatDateShort(biz.subscription?.trialEndsAt) }}</td>
+                  <td (click)="$event.stopPropagation()">
+                    <div class="action-btns">
+                      <button class="btn-icon" title="Cambiar plan" (click)="openPlanModal(biz)">
+                        <lucide-icon name="layers" [size]="13"></lucide-icon>
+                      </button>
+                      <button class="btn-icon" title="Extender trial" (click)="openTrialModal(biz)">
+                        <lucide-icon name="clock" [size]="13"></lucide-icon>
+                      </button>
+                      <button class="btn-icon" title="Meses gratis" (click)="openMonthsModal(biz)">
+                        <lucide-icon name="gift" [size]="13"></lucide-icon>
+                      </button>
+                      <button class="btn-icon" title="Reiniciar uso" (click)="askConfirm('resetUsage', biz)">
+                        <lucide-icon name="refresh-cw" [size]="13"></lucide-icon>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: EMAILS                                                         -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  @if (activeTab() === 'emails') {
+    <div class="two-col-layout">
+      <!-- Compose -->
+      <div class="section-card">
+        <h3 class="section-heading">
+          <lucide-icon name="send" [size]="14"></lucide-icon> Enviar email
+        </h3>
+        <div class="form-grid form-grid-1">
+          <div class="field">
+            <label>Correo destinatario *</label>
+            <input type="email" [(ngModel)]="emailForm.recipientEmail" placeholder="cliente@ejemplo.com" />
+          </div>
+          <div class="field">
+            <label>Nombre (opcional)</label>
+            <input type="text" [(ngModel)]="emailForm.recipientName" placeholder="Nombre del destinatario" />
+          </div>
+          <div class="field">
+            <label>Asunto *</label>
+            <input type="text" [(ngModel)]="emailForm.subject" placeholder="Asunto del mensaje" />
+          </div>
+          <div class="field">
+            <label>Mensaje *</label>
+            <textarea rows="6" [(ngModel)]="emailForm.bodyText" placeholder="Escribe aquí el mensaje..."></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-sm"
+                  [disabled]="actionLoading() || !emailForm.recipientEmail || !emailForm.subject || !emailForm.bodyText"
+                  (click)="sendEmail()">
+            @if (actionLoading()) { Enviando... } @else {
+              <lucide-icon name="send" [size]="13"></lucide-icon> Enviar
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Logs -->
+      <div class="section-card">
+        <h3 class="section-heading">
+          <lucide-icon name="file-text" [size]="14"></lucide-icon> Historial de envíos
+        </h3>
+        @if (emailLogs().length === 0) {
+          <p class="text-muted">No hay emails enviados aún.</p>
+        } @else {
+          <div class="email-log-list">
+            @for (log of emailLogs(); track log.id) {
+              <div class="email-log-item">
+                <div class="email-log-header">
+                  <span class="email-recipient">{{ log.recipientEmail }}</span>
+                  <span class="email-status" [class.ok]="log.status === 'SENT'" [class.fail]="log.status === 'FAILED'">
+                    {{ log.status }}
+                  </span>
+                </div>
+                <div class="email-subject">{{ log.subject }}</div>
+                <div class="email-meta">{{ log.sentByEmail }} · {{ formatDate(log.createdAt) }}</div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- TAB: AUDIT LOG                                                      -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  @if (activeTab() === 'audit') {
+    <div class="section-card">
+      <h3 class="section-heading">
+        <lucide-icon name="shield" [size]="14"></lucide-icon> Log de auditoría (últimas 100 acciones)
+      </h3>
+      @if (auditLogs().length === 0) {
+        <div class="empty-state">
+          <lucide-icon name="activity" [size]="32"></lucide-icon>
+          <p>No hay acciones registradas aún.</p>
+        </div>
+      } @else {
+        <div class="audit-timeline">
+          @for (log of auditLogs(); track log.id) {
+            <div class="audit-item">
+              <div class="audit-dot" [attr.data-action]="log.action"></div>
+              <div class="audit-content">
+                <div class="audit-header">
+                  <span class="audit-action">{{ actionLabel(log.action) }}</span>
+                  @if (log.targetName) {
+                    <span class="audit-target">{{ log.targetName }}</span>
+                  }
+                </div>
+                @if (log.details) {
+                  <div class="audit-details">{{ log.details }}</div>
+                }
+                <div class="audit-meta">
+                  <lucide-icon name="circle-user" [size]="11"></lucide-icon>
+                  {{ log.actorEmail }}
+                  <span>·</span>
+                  <lucide-icon name="clock" [size]="11"></lucide-icon>
+                  {{ formatDate(log.createdAt) }}
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+} <!-- end @else -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- SIDE PANEL: Business Detail                                             -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+@if (showBizPanel() && selectedBiz(); as biz) {
+  <div class="panel-overlay" (click)="closeBizPanel()"></div>
+  <aside class="side-panel">
+    <div class="panel-header">
+      <div>
+        <h2 class="panel-title">{{ biz.name }}</h2>
+        <p class="panel-sub">{{ biz.ownerEmail }} · {{ biz.slug }}</p>
+      </div>
+      <button class="btn-icon" (click)="closeBizPanel()"><lucide-icon name="x" [size]="16"></lucide-icon></button>
+    </div>
+
+    <!-- Status badge -->
+    <div class="panel-status-row">
+      <span class="status-badge" [attr.data-status]="biz.status">{{ statusLabel(biz.status) }}</span>
+      <span class="plan-badge">{{ biz.plan?.name ?? 'Sin plan' }}</span>
+      @if (biz.subscription) {
+        <span class="sub-status" [attr.data-sub]="biz.subscription.status">{{ biz.subscription.status }}</span>
+      }
+    </div>
+
+    <!-- Info grid -->
+    <div class="info-grid">
+      <div class="info-item">
+        <span class="info-label">Propietario</span>
+        <span class="info-value">{{ biz.ownerName }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Tipo</span>
+        <span class="info-value">{{ biz.businessType }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">País / Moneda</span>
+        <span class="info-value">{{ biz.countryCode }} / {{ biz.currencyCode }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Registrado</span>
+        <span class="info-value">{{ formatDateShort(biz.createdAt) }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Pedidos totales</span>
+        <span class="info-value">{{ biz.totalOrders }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Ingresos totales</span>
+        <span class="info-value">{{ formatCurrency(biz.totalRevenue) }}</span>
+      </div>
+    </div>
+
+    <!-- Usage bar -->
+    @if (biz.usage && biz.usage.orderLimit > 0) {
+      <div class="panel-section">
+        <div class="usage-header">
+          <span>Uso mensual</span>
+          <span>{{ biz.usage.ordersThisMonth }} / {{ biz.usage.orderLimit }}</span>
+        </div>
+        <div class="usage-bar-lg">
+          <div class="usage-fill-lg" [style.width.%]="usagePercent(biz.usage)"
+               [class.overage]="biz.usage.overageCount > 0"></div>
+        </div>
+        @if (biz.usage.overageCount > 0) {
+          <p class="overage-note">+{{ biz.usage.overageCount }} pedidos en overage</p>
+        }
+      </div>
+    }
+
+    <!-- Subscription details -->
+    @if (biz.subscription) {
+      <div class="panel-section">
+        <h4 class="panel-section-title">Suscripción</h4>
+        @if (biz.subscription.trialEndsAt) {
+          <div class="info-row"><span class="text-muted">Trial vence:</span> {{ formatDateShort(biz.subscription.trialEndsAt) }}</div>
+        }
+        @if (biz.subscription.currentPeriodEnd) {
+          <div class="info-row"><span class="text-muted">Período vence:</span> {{ formatDateShort(biz.subscription.currentPeriodEnd) }}</div>
+        }
+        <div class="info-row"><span class="text-muted">Proveedor:</span> {{ biz.subscription.provider }}</div>
+      </div>
+    }
+
+    <!-- Actions -->
+    <div class="panel-actions">
+      <h4 class="panel-section-title">Acciones administrativas</h4>
+
+      <div class="action-group">
+        @if (biz.status === 'SUSPENDED') {
+          <button class="btn btn-secondary btn-sm" (click)="askConfirm('activate', biz)">
+            <lucide-icon name="user-check" [size]="13"></lucide-icon> Activar
+          </button>
+        } @else if (biz.status !== 'CANCELLED') {
+          <button class="btn btn-secondary btn-sm" (click)="askConfirm('suspend', biz)">
+            <lucide-icon name="ban" [size]="13"></lucide-icon> Suspender
+          </button>
+        }
+        <button class="btn btn-secondary btn-sm" (click)="openPlanModal(biz)">
+          <lucide-icon name="layers" [size]="13"></lucide-icon> Cambiar plan
+        </button>
+      </div>
+
+      <div class="action-group">
+        <button class="btn btn-secondary btn-sm" (click)="openTrialModal(biz)">
+          <lucide-icon name="clock" [size]="13"></lucide-icon> Extender trial
+        </button>
+        <button class="btn btn-secondary btn-sm" (click)="openMonthsModal(biz)">
+          <lucide-icon name="gift" [size]="13"></lucide-icon> Meses gratis
+        </button>
+        <button class="btn btn-secondary btn-sm" (click)="askConfirm('resetUsage', biz)">
+          <lucide-icon name="refresh-cw" [size]="13"></lucide-icon> Reiniciar uso
+        </button>
+      </div>
+
+      <div class="action-group">
+        <button class="btn btn-secondary btn-sm" (click)="doImpersonate(biz)">
+          <lucide-icon name="external-link" [size]="13"></lucide-icon> Impersonar
+        </button>
+        <button class="btn btn-secondary btn-sm" (click)="askConfirm('forceLogout', biz)">
+          <lucide-icon name="user-x" [size]="13"></lucide-icon> Logout forzado
+        </button>
+      </div>
+
+      <div class="action-group danger-group">
+        <button class="btn btn-danger btn-sm" (click)="askConfirm('delete', biz)">
+          <lucide-icon name="trash2" [size]="13"></lucide-icon> Eliminar negocio
+        </button>
+      </div>
+    </div>
+  </aside>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: Confirm action                                                   -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+@if (confirmAction(); as action) {
+  <div class="modal-overlay" (click)="confirmAction.set(null)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <lucide-icon name="alert-triangle" [size]="18"></lucide-icon>
+        <h3>Confirmar acción</h3>
+      </div>
+      <p class="modal-body">
+        ¿Estás seguro de que deseas <strong>{{ action.type }}</strong> el negocio
+        <strong>{{ action.bizName }}</strong>? Esta acción quedará registrada en el log de auditoría.
+      </p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary btn-sm" (click)="confirmAction.set(null)">Cancelar</button>
+        <button class="btn btn-primary btn-sm" [class.btn-danger]="action.type === 'delete'"
+                [disabled]="actionLoading()" (click)="confirmDo()">
+          @if (actionLoading()) { Procesando... } @else { Confirmar }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: Change plan                                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+@if (planModal(); as modal) {
+  <div class="modal-overlay" (click)="planModal.set(null)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <lucide-icon name="layers" [size]="18"></lucide-icon>
+        <h3>Cambiar plan — {{ modal.bizName }}</h3>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>Nuevo plan</label>
+          <select [(ngModel)]="selectedPlanCode">
+            <option value="">Selecciona un plan...</option>
+            @for (plan of plans(); track plan.id) {
+              <option [value]="plan.code">{{ plan.name }} ({{ formatCurrency(plan.monthlyPrice) }}/mes)</option>
+            }
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary btn-sm" (click)="planModal.set(null)">Cancelar</button>
+        <button class="btn btn-primary btn-sm" [disabled]="!selectedPlanCode || actionLoading()"
+                (click)="submitChangePlan()">
+          Cambiar plan
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: Extend trial                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+@if (trialModal(); as modal) {
+  <div class="modal-overlay" (click)="trialModal.set(null)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <lucide-icon name="clock" [size]="18"></lucide-icon>
+        <h3>Extender trial — {{ modal.bizName }}</h3>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>Días adicionales de trial</label>
+          <input type="number" [(ngModel)]="trialDays" min="1" max="365" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary btn-sm" (click)="trialModal.set(null)">Cancelar</button>
+        <button class="btn btn-primary btn-sm" [disabled]="!trialDays || trialDays < 1 || actionLoading()"
+                (click)="submitExtendTrial()">
+          Extender {{ trialDays }} días
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: Free months                                                       -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+@if (monthsModal(); as modal) {
+  <div class="modal-overlay" (click)="monthsModal.set(null)">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <lucide-icon name="gift" [size]="18"></lucide-icon>
+        <h3>Meses gratis — {{ modal.bizName }}</h3>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>Meses de suscripción gratis</label>
+          <input type="number" [(ngModel)]="freeMonths" min="1" max="24" />
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary btn-sm" (click)="monthsModal.set(null)">Cancelar</button>
+        <button class="btn btn-primary btn-sm" [disabled]="!freeMonths || freeMonths < 1 || actionLoading()"
+                (click)="submitFreeMonths()">
+          Conceder {{ freeMonths }} mes(es)
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- MODAL: Impersonation result                                              -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+@if (impersonResult(); as result) {
+  <div class="modal-overlay" (click)="impersonResult.set(null)">
+    <div class="modal modal-wide" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <lucide-icon name="external-link" [size]="18"></lucide-icon>
+        <h3>Token de impersonación</h3>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted">
+          Token válido 15 minutos para actuar como <strong>{{ result.ownerName }}</strong> ({{ result.ownerEmail }}).
+          Expira: {{ formatDate(result.expiresAt) }}.
+        </p>
+        <div class="token-box">{{ result.token }}</div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary btn-sm" (click)="impersonResult.set(null)">Cerrar</button>
+        <button class="btn btn-primary btn-sm" (click)="copyImpersonToken()">
+          <lucide-icon name="check" [size]="13"></lucide-icon> Copiar token
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,89 @@
+spring:
+  application:
+    name: orderly-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/orderly}
+    username: ${DATABASE_USERNAME:orderly_user}
+    password: ${DATABASE_PASSWORD:orderly_pass}
+    driver-class-name: ${DATABASE_DRIVER:org.postgresql.Driver}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: false
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:orderly_redis_dev_pass}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 10
+          max-idle: 5
+          min-idle: 1
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # 'info' removed: leaks build metadata, git hashes and dependency versions to unauthenticated callers.
+        include: health
+
+orderly:
+  business:
+    default-country-code: ${ORDERLY_DEFAULT_COUNTRY:CO}
+    default-currency-code: ${ORDERLY_DEFAULT_CURRENCY:COP}
+    default-timezone: ${ORDERLY_DEFAULT_TIMEZONE:America/Bogota}
+  security:
+    # Dev default differs from the old publicly-known secret so JwtSecretValidator warns but
+    # does not throw. KNOWN_INSECURE_SECRETS still blocks the old value on any environment.
+    # Production MUST set ORDERLY_JWT_SECRET via environment variable.
+    jwt-secret: ${ORDERLY_JWT_SECRET:orderly-development-only-NOT-safe-for-production-xxxxx}
+    # Reduced from 240 min (4 h) to 60 min to shrink the stolen-token exposure window.
+    token-validity-minutes: ${ORDERLY_JWT_VALIDITY_MINUTES:60}
+    # Comma-separated list of trusted reverse-proxy IP addresses (exact match).
+    # Empty means X-Forwarded-For is never trusted — remoteAddr is used directly.
+    # Production example: ORDERLY_TRUSTED_PROXY_CIDRS=10.0.0.1,172.16.0.5
+    trusted-proxy-ips: ${ORDERLY_TRUSTED_PROXY_IPS:}
+  cors:
+    # Comma-separated list of allowed origins.  No wildcards allowed when credentials=true.
+    # Production: ORDERLY_CORS_ORIGINS=https://app.yourdomain.com
+    allowed-origins: ${ORDERLY_CORS_ORIGINS:http://localhost:4200}
+  evolution:
+    base-url: ${EVOLUTION_API_URL:http://localhost:8085}
+    api-key: ${EVOLUTION_API_KEY:orderly-dev-secret-key}
+    # Empty default means all webhook requests are REJECTED until the secret is configured.
+    # This is intentional: dev without a tunnel/Evolution setup should not process webhooks.
+    webhook-secret: ${EVOLUTION_API_WEBHOOK_SECRET:}
+    app-base-url: ${APP_BASE_URL:http://host.docker.internal:8080}
+  media:
+    upload-dir: ${ORDERLY_UPLOAD_DIR:uploads}
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
+    success-url: ${STRIPE_SUCCESS_URL:http://localhost:4200/billing?success=true}
+    cancel-url: ${STRIPE_CANCEL_URL:http://localhost:4200/billing?cancelled=true}
+    portal-return-url: ${STRIPE_PORTAL_RETURN_URL:http://localhost:4200/billing}
+    prices:
+      starter-monthly: ${STRIPE_PRICE_STARTER_MONTHLY:price_starter_monthly_placeholder}
+      starter-annual: ${STRIPE_PRICE_STARTER_ANNUAL:price_starter_annual_placeholder}
+      growth-monthly: ${STRIPE_PRICE_GROWTH_MONTHLY:price_growth_monthly_placeholder}
+      growth-annual: ${STRIPE_PRICE_GROWTH_ANNUAL:price_growth_annual_placeholder}
+      business-monthly: ${STRIPE_PRICE_BUSINESS_MONTHLY:price_business_monthly_placeholder}
+      business-annual: ${STRIPE_PRICE_BUSINESS_ANNUAL:price_business_annual_placeholder}

@@ -1,0 +1,46 @@
+spring:
+  config:
+    activate:
+      on-profile: postgres
+
+  datasource:
+    # Production: all values MUST come from environment variables — no defaults.
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      # validate: Hibernate checks schema matches entities but never modifies it.
+      # Flyway (below) owns all schema changes in production.
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+
+orderly:
+  security:
+    # Production: ORDERLY_JWT_SECRET must be set. No default — Spring fails fast if missing.
+    jwt-secret: ${ORDERLY_JWT_SECRET}
+    token-validity-minutes: ${ORDERLY_JWT_VALIDITY_MINUTES:60}
+    trusted-proxy-ips: ${ORDERLY_TRUSTED_PROXY_IPS:}
+
+  cors:
+    # Production: ORDERLY_CORS_ORIGINS must be set. No default.
+    allowed-origins: ${ORDERLY_CORS_ORIGINS}

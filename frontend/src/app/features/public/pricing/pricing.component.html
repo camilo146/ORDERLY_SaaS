@@ -1,0 +1,113 @@
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="container">
+      <span class="label">Precios</span>
+      <h1>Simple, transparente,<br>sin sorpresas</h1>
+      <p>7 días de prueba gratuita. Sin tarjeta de crédito. Cancela cuando quieras.</p>
+
+      <!-- Billing toggle -->
+      <div class="toggle-wrap">
+        <button
+          class="toggle-opt"
+          [class.active]="cycle() === 'monthly'"
+          (click)="cycle.set('monthly')">
+          Mensual
+        </button>
+        <button
+          class="toggle-opt"
+          [class.active]="cycle() === 'annual'"
+          (click)="cycle.set('annual')">
+          Anual
+          <span class="save-badge">-20%</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plans -->
+  <section class="plans-section">
+    <div class="container">
+      <div class="plans-grid">
+        @for (plan of plans; track plan.key) {
+          <div class="plan-card" [class.plan-featured]="plan.featured">
+            @if (plan.featured) {
+              <div class="plan-badge">Más popular</div>
+            }
+
+            <div class="plan-top">
+              <span class="plan-name">{{ plan.name }}</span>
+              <div class="plan-price">
+                <span class="price-symbol">$</span>
+                <span class="price-num">{{ getPrice(plan.key) }}</span>
+                <span class="price-period">/mes</span>
+              </div>
+              @if (cycle() === 'annual') {
+                <span class="plan-saving">Ahorras ${{ (prices[plan.key].monthly - prices[plan.key].annual) * 12 }}/año</span>
+              }
+              <p class="plan-desc">{{ plan.desc }}</p>
+            </div>
+
+            <button class="btn btn-sm plan-cta"
+                    [class.btn-primary]="plan.featured"
+                    [class.btn-outline]="!plan.featured"
+                    [disabled]="checkoutLoading()"
+                    (click)="onPlanClick(plan.key)">
+              @if (checkoutLoading()) {
+                Procesando…
+              } @else if (plan.key === 'business') {
+                Hablar con ventas
+              } @else {
+                Comenzar gratis
+              }
+            </button>
+
+            <ul class="plan-features">
+              @for (feat of plan.features; track feat.text) {
+                <li [class.feat-off]="!feat.included">
+                  @if (feat.included) {
+                    <lucide-icon name="check" [size]="13" class="feat-check" />
+                  } @else {
+                    <lucide-icon name="x" [size]="13" class="feat-x" />
+                  }
+                  {{ feat.text }}
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="pricing-faq">
+    <div class="container">
+      <h2>Preguntas sobre precios</h2>
+      <div class="faq-grid">
+        @for (item of faq; track item.q) {
+          <div class="faq-item">
+            <h3>{{ item.q }}</h3>
+            <p>{{ item.a }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="pricing-cta">
+    <div class="container">
+      <div class="cta-inner">
+        <h2>¿Tienes dudas? Hablemos.</h2>
+        <p>Nuestro equipo está listo para ayudarte a elegir el plan correcto para tu negocio.</p>
+        <div class="cta-actions">
+          <a routerLink="/register" class="btn btn-primary btn-lg">Empezar gratis →</a>
+          <a routerLink="/contact" class="btn btn-ghost btn-lg">Contactar ventas</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>

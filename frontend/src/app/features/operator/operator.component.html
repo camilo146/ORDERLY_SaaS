@@ -1,0 +1,108 @@
+@if (error()) {
+  <div class="error-bar">
+    <lucide-icon name="alert-triangle" [size]="14"></lucide-icon>
+    {{ error() }}
+    <button (click)="dismissError()" class="close-btn"><lucide-icon name="x" [size]="14"></lucide-icon></button>
+  </div>
+}
+@if (loading()) {
+  <div class="loading-screen"><div class="spinner"></div><p>Cargando operaciones...</p></div>
+} @else {
+  <header class="page-header">
+    <div>
+      <div class="page-title-row">
+        <lucide-icon name="headphones" [size]="20"></lucide-icon>
+        <h1 class="page-title">Operaciones</h1>
+      </div>
+      <p class="page-sub">Pedidos activos que requieren atención</p>
+    </div>
+  </header>
+
+  @if (overview(); as ov) {
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-header">
+          <lucide-icon name="building-2" [size]="14" class="stat-icon accent-icon"></lucide-icon>
+          <span class="stat-label">Negocios visibles</span>
+        </div>
+        <span class="stat-value accent">{{ ov.visibleBusinesses }}</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <lucide-icon name="clock" [size]="14" class="stat-icon warning-icon"></lucide-icon>
+          <span class="stat-label">Pendientes</span>
+        </div>
+        <span class="stat-value warning">{{ ov.pendingOrders }}</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <lucide-icon name="refresh-cw" [size]="14" class="stat-icon primary-icon"></lucide-icon>
+          <span class="stat-label">En preparación</span>
+        </div>
+        <span class="stat-value primary">{{ ov.inProgressOrders }}</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <lucide-icon name="check" [size]="14" class="stat-icon purple-icon"></lucide-icon>
+          <span class="stat-label">Listos</span>
+        </div>
+        <span class="stat-value purple">{{ ov.readyOrders }}</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <lucide-icon name="alert-circle" [size]="14" class="stat-icon danger-icon"></lucide-icon>
+          <span class="stat-label">Handoffs abiertos</span>
+        </div>
+        <span class="stat-value danger">{{ ov.openHandoffs }}</span>
+      </div>
+    </div>
+  }
+
+  <section class="section">
+    <h2 class="section-title">Pedidos activos</h2>
+    @if (orders().length === 0) {
+      <div class="empty-state">
+        <lucide-icon name="check-circle" [size]="40" style="color: var(--color-success); opacity: 0.6;"></lucide-icon>
+        <p style="font-size: 15px; font-weight: 600; color: var(--color-text-secondary);">Todo al día</p>
+        <p>No hay pedidos activos en este momento.</p>
+      </div>
+    } @else {
+      <div class="orders-list">
+        @for (order of orders(); track order.id) {
+          <div class="order-row">
+            <div class="order-id">#{{ order.id.slice(-6).toUpperCase() }}</div>
+            <div class="order-customer">
+              <span class="cust-name">{{ order.customerName }}</span>
+              <span class="cust-wa">
+                <lucide-icon name="message-circle" [size]="11"></lucide-icon>
+                {{ order.customerWhatsapp }}
+              </span>
+            </div>
+            <div class="order-delivery">
+              @if (order.deliveryType === 'PICKUP') {
+                <lucide-icon name="store" [size]="12"></lucide-icon> Recogida
+              } @else {
+                <lucide-icon name="truck" [size]="12"></lucide-icon> Domicilio
+              }
+            </div>
+            <div class="order-status">
+              <span class="status-badge" [class]="'badge-' + statusColor(order.status)">
+                {{ statusLabel(order.status) }}
+              </span>
+            </div>
+            <div class="order-total">{{ formatCurrency(order.totalAmount) }}</div>
+            <div class="order-time">{{ timeAgo(order.createdAt) }}</div>
+            <div class="order-action">
+              @if (nextActionLabel(order.status)) {
+                <button class="btn-advance" [disabled]="saving()" (click)="advanceStatus(order)">
+                  {{ nextActionLabel(order.status) }}
+                  <lucide-icon name="arrow-right" [size]="12"></lucide-icon>
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+}

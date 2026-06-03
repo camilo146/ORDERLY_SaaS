@@ -1,0 +1,59 @@
+@if (error()) {
+  <div class="error-bar">
+    <lucide-icon name="alert-triangle" [size]="14"></lucide-icon>
+    {{ error() }}
+    <button (click)="dismissError()" class="close-btn"><lucide-icon name="x" [size]="14"></lucide-icon></button>
+  </div>
+}
+
+@if (loading()) {
+  <div class="loading-screen"><div class="spinner"></div><p>Cargando quejas...</p></div>
+} @else {
+  <header class="page-header">
+    <div>
+      <div class="page-title-row">
+        <lucide-icon name="clipboard-list" [size]="20"></lucide-icon>
+        <h1 class="page-title">Quejas y Reclamos</h1>
+      </div>
+      <p class="page-sub">Mensajes recibidos vía WhatsApp</p>
+    </div>
+    <button class="btn-refresh" (click)="load()">
+      <lucide-icon name="refresh-cw" [size]="14"></lucide-icon> Actualizar
+    </button>
+  </header>
+
+  @if (complaints().length === 0) {
+    <div class="empty-state">
+      <lucide-icon name="clipboard-list" [size]="40"></lucide-icon>
+      <p>No hay quejas registradas aún.</p>
+    </div>
+  } @else {
+    <div class="complaints-list">
+      @for (c of complaints(); track c.id) {
+        <div class="complaint-card" [class.reviewed]="c.status === 'REVIEWED'">
+          <div class="complaint-header">
+            <div class="complaint-meta">
+              <lucide-icon name="message-circle" [size]="14"></lucide-icon>
+              <span class="phone">{{ c.customerPhone }}</span>
+            </div>
+            <span class="badge" [class.badge-pending]="c.status === 'PENDING'" [class.badge-reviewed]="c.status === 'REVIEWED'">
+              {{ c.status === 'PENDING' ? 'Pendiente' : 'Revisado' }}
+            </span>
+          </div>
+          <p class="complaint-description">{{ c.description }}</p>
+          @if (c.evidenceUrl) {
+            <div class="complaint-evidence">
+              <a [href]="c.evidenceUrl" target="_blank" rel="noopener">
+                <lucide-icon name="eye" [size]="14"></lucide-icon> Ver comprobante
+              </a>
+            </div>
+          }
+          <div class="complaint-footer">
+            <lucide-icon name="clock" [size]="12"></lucide-icon>
+            <span>{{ formatDate(c.createdAt) }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+}

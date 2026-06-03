@@ -1,0 +1,768 @@
+openapi: 3.0.3
+info:
+  title: ORDERLY API
+  version: 1.0.0
+  description: Contracto base para desarrollo paralelo entre Angular, Spring Boot y WhatsApp Worker.
+servers:
+  - url: https://api.orderly.local
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Sesión iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /api/v1/me:
+    get:
+      tags: [Auth]
+      summary: Usuario autenticado actual
+      responses:
+        '200':
+          description: Perfil actual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserResponse'
+  /api/v1/businesses:
+    post:
+      tags: [Businesses]
+      summary: Crear negocio tenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBusinessRequest'
+      responses:
+        '201':
+          description: Negocio creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Business'
+  /api/v1/businesses/{businessId}:
+    get:
+      tags: [Businesses]
+      summary: Obtener negocio
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Negocio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Business'
+    patch:
+      tags: [Businesses]
+      summary: Actualizar negocio
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBusinessRequest'
+      responses:
+        '200':
+          description: Negocio actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Business'
+  /api/v1/businesses/{businessId}/onboarding/start:
+    post:
+      tags: [Onboarding]
+      summary: Iniciar wizard de onboarding
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Estado inicial del onboarding
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingStatus'
+  /api/v1/businesses/{businessId}/onboarding/status:
+    get:
+      tags: [Onboarding]
+      summary: Consultar estado del onboarding
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Estado actual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnboardingStatus'
+  /api/v1/businesses/{businessId}/whatsapp-channel:
+    get:
+      tags: [WhatsApp]
+      summary: Obtener configuración del número
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Configuración del canal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WhatsappChannel'
+    put:
+      tags: [WhatsApp]
+      summary: Guardar configuración del número del negocio
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WhatsappChannelUpsertRequest'
+      responses:
+        '200':
+          description: Canal actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WhatsappChannel'
+  /api/v1/businesses/{businessId}/whatsapp-channel/verify:
+    post:
+      tags: [WhatsApp]
+      summary: Enviar mensaje de prueba y verificar webhook
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '202':
+          description: Verificación en proceso
+  /api/v1/plans:
+    get:
+      tags: [Plans]
+      summary: Listar planes disponibles
+      responses:
+        '200':
+          description: Lista de planes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Plan'
+  /api/v1/businesses/{businessId}/limits:
+    get:
+      tags: [Plans]
+      summary: Obtener límites efectivos del tenant
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Límites del negocio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessLimits'
+  /api/v1/businesses/{businessId}/message-templates:
+    get:
+      tags: [Templates]
+      summary: Listar plantillas del negocio
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Plantillas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MessageTemplate'
+  /api/v1/businesses/{businessId}/message-templates/{templateId}:
+    put:
+      tags: [Templates]
+      summary: Actualizar plantilla personalizada
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+        - $ref: '#/components/parameters/TemplateId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageTemplateUpsertRequest'
+      responses:
+        '200':
+          description: Plantilla actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageTemplate'
+  /api/v1/businesses/{businessId}/message-templates/preview:
+    post:
+      tags: [Templates]
+      summary: Previsualizar una plantilla con variables
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplatePreviewRequest'
+      responses:
+        '200':
+          description: Render final
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplatePreviewResponse'
+  /api/v1/businesses/{businessId}/categories:
+    get:
+      tags: [Catalog]
+      summary: Listar categorías
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Categorías
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+    post:
+      tags: [Catalog]
+      summary: Crear categoría
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryCreateRequest'
+      responses:
+        '201':
+          description: Categoría creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+  /api/v1/businesses/{businessId}/products:
+    get:
+      tags: [Catalog]
+      summary: Listar productos
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Productos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+    post:
+      tags: [Catalog]
+      summary: Crear producto
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+      responses:
+        '201':
+          description: Producto creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+  /api/v1/businesses/{businessId}/customers:
+    get:
+      tags: [Customers]
+      summary: Listar clientes
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Clientes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Customer'
+  /api/v1/businesses/{businessId}/orders:
+    get:
+      tags: [Orders]
+      summary: Listar pedidos
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Pedidos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+    post:
+      tags: [Orders]
+      summary: Crear pedido manual o interno
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreateRequest'
+      responses:
+        '201':
+          description: Pedido creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+  /api/v1/businesses/{businessId}/orders/{orderId}/status:
+    patch:
+      tags: [Orders]
+      summary: Cambiar estado del pedido
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+        - $ref: '#/components/parameters/OrderId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  example: READY
+      responses:
+        '200':
+          description: Pedido actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+  /api/v1/businesses/{businessId}/conversations:
+    get:
+      tags: [Conversations]
+      summary: Listar conversaciones
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Conversaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Conversation'
+  /api/v1/businesses/{businessId}/conversations/{conversationId}/handoff:
+    post:
+      tags: [Conversations]
+      summary: Enviar conversación a operador humano
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+        - $ref: '#/components/parameters/ConversationId'
+      requestBody:
+        required: false
+      responses:
+        '202':
+          description: Handoff abierto
+  /api/v1/businesses/{businessId}/conversations/{conversationId}/return-to-bot:
+    post:
+      tags: [Conversations]
+      summary: Cerrar handoff y devolver el control al bot
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+        - $ref: '#/components/parameters/ConversationId'
+      responses:
+        '202':
+          description: Conversación devuelta al bot
+  /api/v1/webhooks/whatsapp/{businessId}:
+    get:
+      tags: [Webhooks]
+      summary: Verificación del webhook de Meta
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '200':
+          description: Token verificado
+    post:
+      tags: [Webhooks]
+      summary: Recepción de mensajes y estados desde Meta
+      parameters:
+        - $ref: '#/components/parameters/BusinessId'
+      responses:
+        '202':
+          description: Evento recibido
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    BusinessId:
+      name: businessId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TemplateId:
+      name: templateId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ConversationId:
+      name: conversationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    AuthResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+        businesses:
+          type: array
+          items:
+            $ref: '#/components/schemas/Business'
+    CurrentUserResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        activeBusinessId:
+          type: string
+          format: uuid
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        email:
+          type: string
+    CreateBusinessRequest:
+      type: object
+      required: [name, businessType]
+      properties:
+        name:
+          type: string
+        businessType:
+          type: string
+          example: restaurant
+        countryCode:
+          type: string
+          example: CO
+        currencyCode:
+          type: string
+          example: COP
+        timezone:
+          type: string
+          example: America/Bogota
+    UpdateBusinessRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        businessHours:
+          type: object
+        chatbotEnabled:
+          type: boolean
+    Business:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        businessType:
+          type: string
+        status:
+          type: string
+        planCode:
+          type: string
+    OnboardingStatus:
+      type: object
+      properties:
+        step:
+          type: string
+          example: whatsapp_verification
+        completed:
+          type: boolean
+        blockers:
+          type: array
+          items:
+            type: string
+    WhatsappChannelUpsertRequest:
+      type: object
+      required: [displayName, phoneNumber]
+      properties:
+        displayName:
+          type: string
+        phoneNumber:
+          type: string
+        accessToken:
+          type: string
+        verifyToken:
+          type: string
+    WhatsappChannel:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+        phoneNumber:
+          type: string
+        status:
+          type: string
+        qualityRating:
+          type: string
+    Plan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        monthlyOrderLimit:
+          type: integer
+        productLimit:
+          type: integer
+        userLimit:
+          type: integer
+    BusinessLimits:
+      type: object
+      properties:
+        planCode:
+          type: string
+        monthlyOrders:
+          type: object
+          properties:
+            used:
+              type: integer
+            limit:
+              type: integer
+        products:
+          type: object
+          properties:
+            used:
+              type: integer
+            limit:
+              type: integer
+    MessageTemplateUpsertRequest:
+      type: object
+      required: [eventType, bodyTemplate]
+      properties:
+        eventType:
+          type: string
+        bodyTemplate:
+          type: string
+        footerText:
+          type: string
+        variables:
+          type: array
+          items:
+            type: string
+    TemplatePreviewRequest:
+      type: object
+      required: [bodyTemplate]
+      properties:
+        bodyTemplate:
+          type: string
+        variables:
+          type: object
+          additionalProperties: true
+    TemplatePreviewResponse:
+      type: object
+      properties:
+        renderedText:
+          type: string
+    MessageTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+        templateName:
+          type: string
+        bodyTemplate:
+          type: string
+        isActive:
+          type: boolean
+    CategoryCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+    ProductCreateRequest:
+      type: object
+      required: [name, price]
+      properties:
+        categoryId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        price:
+          type: number
+          format: double
+        description:
+          type: string
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        price:
+          type: number
+          format: double
+        isAvailable:
+          type: boolean
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        whatsappNumber:
+          type: string
+        totalOrders:
+          type: integer
+    OrderCreateRequest:
+      type: object
+      required: [customerId, items]
+      properties:
+        customerId:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+                format: uuid
+              quantity:
+                type: integer
+              notes:
+                type: string
+        notes:
+          type: string
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderNumber:
+          type: integer
+        status:
+          type: string
+        totalAmount:
+          type: number
+          format: double
+        customer:
+          $ref: '#/components/schemas/Customer'
+    Conversation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        state:
+          type: string
+          example: HUMAN_HANDOFF
+        unreadCount:
+          type: integer
+        lastMessagePreview:
+          type: string
+        customer:
+          $ref: '#/components/schemas/Customer'

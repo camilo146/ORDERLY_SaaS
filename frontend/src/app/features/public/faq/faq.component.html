@@ -1,0 +1,56 @@
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="container">
+      <span class="label">FAQ</span>
+      <h1>Preguntas frecuentes</h1>
+      <p>Encuentra respuestas a las dudas más comunes. ¿No encuentras lo que buscas? <a routerLink="/contact">Contáctanos</a>.</p>
+    </div>
+  </div>
+
+  <!-- FAQ List -->
+  <section class="faq-section">
+    <div class="container">
+      <div class="faq-list">
+        @for (item of items; track item.q; let i = $index) {
+          <div class="faq-item" [class.open]="openIndex() === i">
+            <button class="faq-trigger" (click)="toggle(i)">
+              <span class="faq-q">{{ item.q }}</span>
+              <div class="faq-icon">
+                @if (openIndex() === i) {
+                  <lucide-icon name="chevron-right" [size]="16" style="transform: rotate(90deg)" />
+                } @else {
+                  <lucide-icon name="chevron-right" [size]="16" />
+                }
+              </div>
+            </button>
+            @if (openIndex() === i) {
+              <div class="faq-answer">
+                <p>{{ item.a }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Still have questions -->
+  <section class="faq-cta">
+    <div class="container">
+      <div class="cta-card">
+        <div class="cta-icon">
+          <lucide-icon name="message-circle" [size]="24" />
+        </div>
+        <h2>¿Tienes más preguntas?</h2>
+        <p>Nuestro equipo responde en menos de 24 horas. También puedes explorar la documentación o iniciar una prueba gratuita.</p>
+        <div class="cta-actions">
+          <a routerLink="/contact" class="btn btn-primary btn-lg">Contactar soporte</a>
+          <a routerLink="/register" class="btn btn-ghost btn-lg">Empezar gratis →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>

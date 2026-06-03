@@ -1,0 +1,237 @@
+<div class="billing-page">
+
+  <!-- Success / Cancel banners -->
+  @if (showSuccessBanner()) {
+    <div class="banner banner-success">
+      <lucide-icon name="CheckCircle" [size]="18"></lucide-icon>
+      <span>¡Suscripción activada! Bienvenido a Orderly.</span>
+      <button class="banner-close" (click)="dismissSuccess()">
+        <lucide-icon name="X" [size]="14"></lucide-icon>
+      </button>
+    </div>
+  }
+  @if (showCancelBanner()) {
+    <div class="banner banner-warn">
+      <lucide-icon name="AlertTriangle" [size]="18"></lucide-icon>
+      <span>Checkout cancelado. Tu plan actual no cambió.</span>
+      <button class="banner-close" (click)="dismissSuccess()">
+        <lucide-icon name="X" [size]="14"></lucide-icon>
+      </button>
+    </div>
+  }
+
+  <!-- Error toast -->
+  @if (error()) {
+    <div class="banner banner-error">
+      <lucide-icon name="AlertCircle" [size]="18"></lucide-icon>
+      <span>{{ error() }}</span>
+      <button class="banner-close" (click)="dismissError()">
+        <lucide-icon name="X" [size]="14"></lucide-icon>
+      </button>
+    </div>
+  }
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Facturación</h1>
+      <p class="page-subtitle">Gestiona tu plan, métodos de pago y facturas.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <lucide-icon name="Loader" [size]="28" class="spin"></lucide-icon>
+      <span>Cargando suscripción…</span>
+    </div>
+  } @else if (subscription()) {
+
+    <!-- Current Plan Card -->
+    <section class="current-plan-card">
+      <div class="plan-card-header">
+        <div class="plan-info">
+          <div class="plan-badge-row">
+            <span class="plan-name">{{ planLabel(subscription()!.planCode ?? 'starter') }}</span>
+            <span class="status-badge" [class]="'status-' + subscription()!.status.toLowerCase()">
+              {{ statusLabel(subscription()!.status) }}
+            </span>
+            @if (subscription()!.cancelAtPeriodEnd) {
+              <span class="status-badge status-warn">Cancela al final del período</span>
+            }
+          </div>
+          <p class="plan-period">
+            @if (isTrialing()) {
+              Trial gratuito hasta {{ formatDate(subscription()!.trialEndsAt) }}
+            } @else if (subscription()!.currentPeriodEnd) {
+              Próxima renovación: {{ formatDate(subscription()!.currentPeriodEnd) }}
+            }
+          </p>
+        </div>
+
+        <div class="plan-actions">
+          <button class="btn btn-secondary" (click)="manageBilling()" [disabled]="actionLoading()">
+            <lucide-icon name="ExternalLink" [size]="15"></lucide-icon>
+            Gestionar facturación
+          </button>
+        </div>
+      </div>
+
+      <!-- Past due alert -->
+      @if (isPastDue()) {
+        <div class="alert alert-error">
+          <lucide-icon name="AlertTriangle" [size]="16"></lucide-icon>
+          <span>Tu último pago falló. Actualiza tu método de pago en el portal de facturación para evitar la suspensión del servicio.</span>
+        </div>
+      }
+
+      <!-- Usage meter -->
+      @if (subscription()!.currentUsage) {
+        <div class="usage-section">
+          <div class="usage-header">
+            <span class="usage-label">Pedidos este mes</span>
+            <span class="usage-count">
+              {{ subscription()!.currentUsage!.ordersCount }}
+              /
+              @if (subscription()!.currentUsage!.planOrderLimit === 0) {
+                Ilimitados
+              } @else {
+                {{ subscription()!.currentUsage!.planOrderLimit | number }}
+              }
+            </span>
+          </div>
+          @if (subscription()!.currentUsage!.planOrderLimit > 0) {
+            <div class="usage-bar-track">
+              <div class="usage-bar-fill"
+                   [class.usage-warning]="usagePercent() >= 80"
+                   [class.usage-danger]="usagePercent() >= 95"
+                   [style.width.%]="usagePercent()">
+              </div>
+            </div>
+            <div class="usage-footer">
+              <span class="usage-remaining">{{ ordersRemaining() }} pedidos restantes</span>
+              <span class="usage-pct">{{ usagePercent() }}%</span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Upgrade Plans -->
+    <section class="upgrade-section">
+      <div class="upgrade-header">
+        <h2 class="section-title">Planes disponibles</h2>
+        <div class="cycle-toggle">
+          <button class="toggle-btn" [class.active]="cycle() === 'monthly'" (click)="toggleCycle()">
+            Mensual
+          </button>
+          <button class="toggle-btn" [class.active]="cycle() === 'annual'" (click)="toggleCycle()">
+            Anual
+            <span class="savings-badge">-20%</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="plans-grid">
+        @for (plan of plans(); track plan.code) {
+          <div class="plan-card" [class.plan-card-current]="plan.code === subscription()!.planCode" [class.plan-card-featured]="plan.code === 'growth'">
+            @if (plan.code === 'growth') {
+              <div class="popular-badge">
+                <lucide-icon name="Zap" [size]="12"></lucide-icon>
+                Popular
+              </div>
+            }
+            @if (plan.code === subscription()!.planCode) {
+              <div class="current-indicator">Plan actual</div>
+            }
+
+            <div class="plan-card-body">
+              <h3 class="plan-card-name">{{ planLabel(plan.code) }}</h3>
+
+              <div class="plan-price-display">
+                <span class="price-amount">${{ getPrice(plan) | number:'1.0-0' }}</span>
+                <span class="price-period">/mes</span>
+              </div>
+              @if (cycle() === 'annual') {
+                <p class="price-billed">Facturado ${{ plan.annualPriceUsd | number:'1.0-0' }}/año</p>
+              }
+
+              <ul class="feature-list">
+                <li class="feature-item">
+                  <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                  @if (plan.monthlyOrderLimit === 0) {
+                    Pedidos ilimitados/mes
+                  } @else {
+                    {{ plan.monthlyOrderLimit | number }} pedidos/mes
+                  }
+                </li>
+                <li class="feature-item">
+                  <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                  @if (!plan.userLimit || plan.userLimit === 0) {
+                    Operadores ilimitados
+                  } @else {
+                    {{ plan.userLimit }} operador{{ plan.userLimit > 1 ? 'es' : '' }}
+                  }
+                </li>
+                <li class="feature-item">
+                  <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                  Catálogo ilimitado
+                </li>
+                @if (plan.analyticsEnabled) {
+                  <li class="feature-item">
+                    <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                    Analytics avanzado
+                  </li>
+                }
+                @if (plan.multiLocation) {
+                  <li class="feature-item">
+                    <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                    Multi-negocio
+                  </li>
+                }
+                @if (plan.prioritySupport) {
+                  <li class="feature-item">
+                    <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                    Soporte prioritario
+                  </li>
+                }
+              </ul>
+
+              @if (plan.code !== subscription()!.planCode) {
+                <button class="btn plan-cta-btn"
+                        [class.btn-primary]="isUpgrade(plan.code)"
+                        [class.btn-secondary]="!isUpgrade(plan.code)"
+                        (click)="checkout(plan.code)"
+                        [disabled]="actionLoading()">
+                  @if (actionLoading()) {
+                    <lucide-icon name="Loader" [size]="14" class="spin"></lucide-icon>
+                    Procesando…
+                  } @else if (isUpgrade(plan.code)) {
+                    <lucide-icon name="ArrowUpRight" [size]="14"></lucide-icon>
+                    Mejorar a {{ planLabel(plan.code) }}
+                  } @else {
+                    Cambiar a {{ planLabel(plan.code) }}
+                  }
+                </button>
+              } @else {
+                <div class="current-plan-cta">
+                  <lucide-icon name="Check" [size]="15"></lucide-icon>
+                  Plan actual
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+
+  } @else if (!loading()) {
+    <!-- No subscription state -->
+    <div class="empty-state">
+      <lucide-icon name="CreditCard" [size]="40" class="empty-icon"></lucide-icon>
+      <h3>Sin suscripción activa</h3>
+      <p>Elige un plan para comenzar a usar Orderly.</p>
+      <a routerLink="/pricing" class="btn btn-primary">Ver planes</a>
+    </div>
+  }
+
+</div>

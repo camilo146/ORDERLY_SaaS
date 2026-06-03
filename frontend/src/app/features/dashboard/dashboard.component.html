@@ -1,0 +1,274 @@
+<!-- Error banner -->
+@if (error()) {
+  <div class="error-bar">
+    <lucide-icon name="alert-triangle" [size]="14"></lucide-icon>
+    {{ error() }}
+    <button (click)="dismissError()" class="close-btn">
+      <lucide-icon name="x" [size]="14"></lucide-icon>
+    </button>
+  </div>
+}
+
+<!-- Loading state -->
+@if (loading()) {
+  <div class="loading-screen">
+    <div class="spinner"></div>
+    <p>Cargando panel...</p>
+  </div>
+} @else {
+
+  <!-- Page header -->
+  <header class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">{{ dashboard()?.businessName ?? 'Dashboard' }}</h1>
+      <p class="page-sub">Tablero de pedidos en tiempo real</p>
+    </div>
+    <div class="header-actions">
+      <!-- Out of service toggle -->
+      <button
+        class="btn-service"
+        [class.service-off]="!serviceEnabled()"
+        [disabled]="togglingService()"
+        (click)="toggleService()"
+        [title]="serviceEnabled() ? 'El servicio está activo. Clic para pausar.' : 'Servicio pausado. Clic para reactivar.'">
+        @if (togglingService()) {
+          <lucide-icon name="loader" [size]="14" class="spin"></lucide-icon>
+        } @else if (serviceEnabled()) {
+          <lucide-icon name="wifi" [size]="14"></lucide-icon>
+        } @else {
+          <lucide-icon name="wifi-off" [size]="14"></lucide-icon>
+        }
+        {{ serviceEnabled() ? 'Servicio activo' : 'Fuera de servicio' }}
+      </button>
+      <button class="btn-new-order" (click)="showForm.set(!showForm())">
+        @if (showForm()) {
+          <lucide-icon name="x" [size]="14"></lucide-icon>
+          Cancelar
+        } @else {
+          <lucide-icon name="plus" [size]="14"></lucide-icon>
+          Nuevo pedido
+        }
+      </button>
+    </div>
+  </header>
+
+  <!-- Onboarding progress bar -->
+  @if (setupProgress() < 100) {
+    <div class="onboarding-banner">
+      <div class="ob-header">
+        <div class="ob-title-row">
+          <lucide-icon name="zap" [size]="15" class="ob-icon"></lucide-icon>
+          <span class="ob-title">Completa tu configuración</span>
+        </div>
+        <span class="ob-pct">{{ setupProgress() }}%</span>
+      </div>
+      <div class="ob-bar">
+        <div class="ob-fill" [style.width.%]="setupProgress()"></div>
+      </div>
+      <div class="ob-steps">
+        @for (step of setupSteps(); track step.label) {
+          <span class="ob-step" [class.done]="step.done">
+            @if (step.done) {
+              <lucide-icon name="check-circle" [size]="12"></lucide-icon>
+            } @else {
+              <lucide-icon name="circle" [size]="12"></lucide-icon>
+            }
+            {{ step.label }}
+          </span>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Stats row -->
+  @if (dashboard(); as dash) {
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-header">
+          <lucide-icon name="clock" [size]="14" class="stat-icon warning-icon"></lucide-icon>
+          <span class="stat-label">Pendientes</span>
+        </div>
+        <span class="stat-value warning">{{ dash.pendingOrders }}</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <lucide-icon name="check-circle" [size]="14" class="stat-icon success-icon"></lucide-icon>
+          <span class="stat-label">Entregados</span>
+        </div>
+        <span class="stat-value success">{{ dash.deliveredOrders }}</span>
+      </div>
+      <div class="stat-card">
+        <div class="stat-header">
+          <lucide-icon name="trending-up" [size]="14" class="stat-icon primary-icon"></lucide-icon>
+          <span class="stat-label">Ingresos</span>
+        </div>
+        <span class="stat-value primary">{{ formatCurrency(dash.totalRevenue) }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- New order form -->
+  @if (showForm()) {
+    <div class="new-order-card">
+      <h3>Crear pedido manual</h3>
+      <div class="form-grid">
+        <div class="field">
+          <label>Nombre del cliente</label>
+          <input type="text" [(ngModel)]="newOrder.customerName" placeholder="Ej: Carlos López" />
+        </div>
+        <div class="field">
+          <label>WhatsApp</label>
+          <input type="text" [(ngModel)]="newOrder.customerWhatsapp" placeholder="+57 300 000 0000" />
+        </div>
+        <div class="field">
+          <label>Tipo de entrega</label>
+          <select [(ngModel)]="newOrder.deliveryType">
+            <option value="DELIVERY">Domicilio</option>
+            <option value="PICKUP">Recogida</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Notas</label>
+          <input type="text" [(ngModel)]="newOrder.notes" placeholder="Instrucciones especiales..." />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-save" [disabled]="saving() || !newOrder.customerName" (click)="createOrder()">
+          @if (saving()) { Guardando... } @else { Crear pedido }
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Kanban board -->
+  <div class="kanban-board">
+    @for (col of columns; track col.status) {
+      <div class="kanban-col">
+        <div class="col-header" [class]="'col-' + col.color">
+          <span class="col-title">{{ col.label }}</span>
+          <span class="col-badge">{{ col.orders.length }}</span>
+        </div>
+
+        <div class="col-body">
+          @if (col.orders.length === 0) {
+            <div class="empty-col">Sin pedidos</div>
+          }
+          @for (order of col.orders; track order.id) {
+            <div class="order-card" (click)="viewDetail(order)">
+              <div class="order-top">
+                <span class="order-id">#{{ order.id.slice(-6).toUpperCase() }}</span>
+                <span class="order-time">{{ timeAgo(order.createdAt) }}</span>
+              </div>
+              <p class="order-customer">{{ order.customerName }}</p>
+              <div class="order-wa">
+                <lucide-icon name="message-circle" [size]="12"></lucide-icon>
+                <span>{{ order.customerWhatsapp }}</span>
+              </div>
+              <div class="order-meta">
+                <span class="delivery-badge" [class.pickup]="order.deliveryType === 'PICKUP'">
+                  @if (order.deliveryType === 'PICKUP') {
+                    <lucide-icon name="store" [size]="10"></lucide-icon> Recogida
+                  } @else {
+                    <lucide-icon name="truck" [size]="10"></lucide-icon> Domicilio
+                  }
+                </span>
+                <span class="order-total">{{ formatCurrency(order.totalAmount) }}</span>
+              </div>
+
+              @if (order.items && order.items.length) {
+                <ul class="order-items">
+                  @for (item of order.items.slice(0, 2); track item.productId) {
+                    <li>{{ item.quantity }}&times; {{ item.productName }}</li>
+                  }
+                  @if (order.items.length > 2) {
+                    <li class="more">+{{ order.items.length - 2 }} más</li>
+                  }
+                </ul>
+              }
+
+              <!-- Payment proof badge for PENDING orders with proof -->
+              @if (order.status === 'PENDING' && order.paymentProofUrl) {
+                <div class="proof-alert" (click)="$event.stopPropagation(); openProofView(order)">
+                  <lucide-icon name="image" [size]="12"></lucide-icon>
+                  Comprobante recibido — verificar
+                </div>
+              }
+
+              <!-- Cancel reason badge -->
+              @if (order.status === 'CANCELLED' && order.cancelReason) {
+                <div class="cancel-reason-badge">
+                  <lucide-icon name="info" [size]="11"></lucide-icon>
+                  {{ order.cancelReason }}
+                </div>
+              }
+
+              <!-- Actions -->
+              <div class="order-actions" (click)="$event.stopPropagation()">
+                @if (cancellingOrder()?.id === order.id) {
+                  <div class="cancel-form">
+                    <input
+                      type="text"
+                      class="cancel-input"
+                      placeholder="Motivo de cancelación..."
+                      [value]="cancelReason()"
+                      (input)="cancelReason.set($any($event.target).value)"
+                      (click)="$event.stopPropagation()" />
+                    <div class="cancel-btns">
+                      <button class="btn btn-danger btn-sm" [disabled]="saving()" (click)="confirmCancel()">
+                        Cancelar pedido
+                      </button>
+                      <button class="btn btn-ghost btn-sm" (click)="dismissCancel()">Volver</button>
+                    </div>
+                  </div>
+                } @else {
+                  @if (nextLabel(order.status)) {
+                    <button class="btn-advance" (click)="advanceStatus(order)">
+                      {{ nextLabel(order.status) }}
+                      <lucide-icon name="arrow-right" [size]="12"></lucide-icon>
+                    </button>
+                  }
+                  @if (!['DELIVERED','CANCELLED'].includes(order.status)) {
+                    <button class="btn-cancel" (click)="requestCancel(order)" title="Cancelar">
+                      <lucide-icon name="x" [size]="13"></lucide-icon>
+                    </button>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- Payment proof modal -->
+@if (proofViewOrder()) {
+  <div class="modal-backdrop" (click)="closeProofView()">
+    <div class="proof-modal" (click)="$event.stopPropagation()">
+      <div class="proof-modal-header">
+        <div>
+          <h3 class="modal-title">Verificar comprobante</h3>
+          <p class="modal-sub">Pedido #{{ proofViewOrder()!.id.slice(-6).toUpperCase() }} — {{ proofViewOrder()!.customerName }}</p>
+        </div>
+        <button class="btn-icon-close" (click)="closeProofView()">
+          <lucide-icon name="x" [size]="16"></lucide-icon>
+        </button>
+      </div>
+      <div class="proof-image-wrap">
+        <img [src]="proofViewOrder()!.paymentProofUrl" alt="Comprobante de pago" class="proof-image" />
+      </div>
+      <div class="proof-actions">
+        <button class="btn btn-danger" (click)="rejectProof(proofViewOrder()!)">
+          <lucide-icon name="x-circle" [size]="14"></lucide-icon>
+          Rechazar (no auténtico)
+        </button>
+        <button class="btn btn-primary" (click)="approveProof(proofViewOrder()!)">
+          <lucide-icon name="check-circle" [size]="14"></lucide-icon>
+          Aprobar comprobante
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

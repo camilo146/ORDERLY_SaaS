@@ -1,0 +1,176 @@
+@if (error()) {
+  <div class="error-bar">
+    <lucide-icon name="alert-triangle" [size]="14"></lucide-icon>
+    {{ error() }}
+    <button (click)="dismissError()" class="close-btn"><lucide-icon name="x" [size]="14"></lucide-icon></button>
+  </div>
+}
+
+@if (loading()) {
+  <div class="loading-screen"><div class="spinner"></div><p>Cargando productos...</p></div>
+} @else {
+
+  <header class="page-header">
+    <div>
+      <div class="page-title-row">
+        <lucide-icon name="shopping-cart" [size]="20"></lucide-icon>
+        <h1 class="page-title">Productos</h1>
+      </div>
+      <p class="page-sub">Catálogo del negocio activo</p>
+    </div>
+    <button class="btn-new" (click)="showForm.set(!showForm()); cancelEdit(); cancelDelete()">
+      @if (showForm()) {
+        <lucide-icon name="x" [size]="14"></lucide-icon> Cancelar
+      } @else {
+        <lucide-icon name="plus" [size]="14"></lucide-icon> Nuevo producto
+      }
+    </button>
+  </header>
+
+  <!-- Create form -->
+  @if (showForm()) {
+    <div class="form-card">
+      <h3>Agregar producto</h3>
+      <div class="form-grid">
+        <div class="field">
+          <label>Nombre</label>
+          <input type="text" [(ngModel)]="newProduct.name" placeholder="Ej: Hamburguesa clásica" />
+        </div>
+        <div class="field">
+          <label>Precio (COP)</label>
+          <input type="number" [(ngModel)]="newProduct.price" placeholder="25000" min="0" />
+        </div>
+        <div class="field span-2">
+          <label>Descripción</label>
+          <input type="text" [(ngModel)]="newProduct.description" placeholder="Descripción breve del producto..." />
+        </div>
+        <div class="field">
+          <label>Stock (unidades, vacío = ilimitado)</label>
+          <input type="number" [(ngModel)]="newProduct.stock" placeholder="Ilimitado" min="0" />
+        </div>
+        <div class="field span-2">
+          <label>Foto del producto (opcional)</label>
+          <input type="file" accept="image/*" (change)="onImageSelected($event)" />
+          @if (imagePreviewUrl()) {
+            <div class="preview-wrap">
+              <img [src]="imagePreviewUrl()!" alt="Vista previa de producto" class="preview-img" />
+              <button type="button" class="btn-clear-image" (click)="clearImageSelection()">Quitar foto</button>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-save" [disabled]="saving() || !newProduct.name || !newProduct.price" (click)="createProduct()">
+          @if (saving()) { Guardando... } @else { Crear producto }
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (products().length === 0) {
+    <div class="empty-state">
+      <lucide-icon name="package" [size]="48" class="empty-icon"></lucide-icon>
+      <p>No hay productos en el catálogo.</p>
+      <button class="btn-new" (click)="showForm.set(true)">Agregar el primero</button>
+    </div>
+  } @else {
+
+    <div class="products-grid">
+      @for (prod of products(); track prod.id) {
+        <div class="product-card" [class.unavailable]="!prod.available">
+          @if (resolveImageUrl(prod.imageUrl); as imgUrl) {
+            <img [src]="imgUrl" [alt]="prod.name" class="product-image" />
+          }
+          <div class="prod-header">
+            <span class="prod-name">{{ prod.name }}</span>
+            <span class="prod-status" [class.active]="prod.available">
+              {{ prod.available ? 'Disponible' : 'No disponible' }}
+            </span>
+          </div>
+          @if (prod.description) {
+            <p class="prod-desc">{{ prod.description }}</p>
+          }
+          <p class="prod-price">{{ formatCurrency(prod.price) }}</p>
+          @if (prod.stock !== null && prod.stock !== undefined) {
+            <div class="prod-stock" [class.stock-low]="prod.stock <= 5" [class.stock-out]="prod.stock === 0">
+              <lucide-icon name="package" [size]="11"></lucide-icon>
+              @if (prod.stock === 0) { Sin stock } @else { {{ prod.stock }} en stock }
+            </div>
+          }
+
+          <!-- Actions -->
+          <div class="prod-actions">
+            @if (deletingId() === prod.id) {
+              <span class="confirm-text">¿Eliminar este producto?</span>
+              <button class="btn btn-danger btn-sm" [disabled]="saving()" (click)="deleteProduct(prod.id)">Eliminar</button>
+              <button class="btn btn-ghost btn-sm" (click)="cancelDelete()">Cancelar</button>
+            } @else {
+              <button class="btn-icon" title="Editar" (click)="startEdit(prod)">
+                <lucide-icon name="pencil" [size]="14"></lucide-icon>
+              </button>
+              <button class="btn-icon btn-icon-danger" title="Eliminar" (click)="requestDelete(prod.id)">
+                <lucide-icon name="trash-2" [size]="14"></lucide-icon>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+}
+
+<!-- Edit modal -->
+@if (editingProduct()) {
+  <div class="modal-backdrop" (click)="cancelEdit()">
+    <div class="modal-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Editar producto</h3>
+          <p class="modal-sub">{{ editingProduct()!.name }}</p>
+        </div>
+        <button class="btn-icon" (click)="cancelEdit()">
+          <lucide-icon name="x" [size]="16"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Nombre</label>
+          <input type="text" [(ngModel)]="editPayload.name" placeholder="Nombre del producto" />
+        </div>
+        <div class="field">
+          <label>Precio (COP)</label>
+          <input type="number" [(ngModel)]="editPayload.price" min="0" />
+        </div>
+        <div class="field span-2">
+          <label>Descripción</label>
+          <input type="text" [(ngModel)]="editPayload.description" placeholder="Descripción breve..." />
+        </div>
+        <div class="field">
+          <label>Estado</label>
+          <select [(ngModel)]="editPayload.available">
+            <option [ngValue]="true">Disponible</option>
+            <option [ngValue]="false">No disponible</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Stock (vacío = ilimitado)</label>
+          <input type="number" [(ngModel)]="editPayload.stock" placeholder="Ilimitado" min="0" />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="cancelEdit()">Cancelar</button>
+        <button class="btn btn-primary" [disabled]="saving() || !editPayload.name" (click)="saveEdit()">
+          @if (saving()) {
+            <lucide-icon name="loader" [size]="14" class="spin"></lucide-icon>
+            Guardando...
+          } @else {
+            Guardar cambios
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

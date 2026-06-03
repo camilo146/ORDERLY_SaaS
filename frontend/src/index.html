@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Orderly — Gestión de pedidos por WhatsApp</title>
+  <meta name="description" content="Orderly: gestiona pedidos de tu negocio a través de WhatsApp. Panel en tiempo real para administradores y operadores.">
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="logo.png?v=20260602">
+  <!--
+    [SECURITY MITIGATION VUL-11] Content Security Policy para reducir el riesgo de XSS.
+    Restricciones:
+      - default-src 'self'       → solo recursos del mismo origen
+      - script-src 'self'        → prohíbe scripts inline y de terceros
+      - object-src 'none'        → desactiva plugins (Flash, etc.)
+      - base-uri 'self'          → previene inyección de base tag
+      - frame-ancestors 'none'   → anti-clickjacking (redundante con X-Frame-Options)
+    NOTA: El fix definitivo de VUL-11 requiere migrar el JWT de localStorage
+    a HttpOnly cookies con SameSite=Strict (refactor backend+frontend).
+  -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self';
+                 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+                 img-src 'self' data: blob:;
+                 connect-src 'self' http://localhost:8080 ws://localhost:8080;
+                 font-src 'self' https://fonts.gstatic.com;
+                 object-src 'none';
+                 base-uri 'self'">
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

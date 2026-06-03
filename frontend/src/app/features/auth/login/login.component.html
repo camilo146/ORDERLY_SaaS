@@ -1,0 +1,82 @@
+<div class="login-page">
+
+  <div class="login-left">
+    <div class="brand-block">
+      <img src="assets/logo.png?v=20260602" alt="Orderly" class="brand-logo" />
+      <span class="brand-name">Orderly</span>
+    </div>
+    <h2 class="hero-title">Gestiona tus pedidos<br>desde WhatsApp.</h2>
+    <p class="hero-sub">Centraliza, atiende y analiza cada pedido de tu negocio — sin hojas de cálculo ni caos.</p>
+    <div class="hero-features">
+      <div class="feat-item">
+        <lucide-icon name="check-circle" [size]="15"></lucide-icon>
+        <span>Pedidos en tiempo real</span>
+      </div>
+      <div class="feat-item">
+        <lucide-icon name="check-circle" [size]="15"></lucide-icon>
+        <span>Catálogo de productos inteligente</span>
+      </div>
+      <div class="feat-item">
+        <lucide-icon name="check-circle" [size]="15"></lucide-icon>
+        <span>Panel para todo tu equipo</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-card">
+      <div class="card-header">
+        <h1 class="card-title">Iniciar sesión</h1>
+        <p class="card-sub">Ingresa a tu cuenta de Orderly</p>
+      </div>
+
+      <form class="form" (ngSubmit)="onSubmit()">
+        <div class="field">
+          <label for="email">Correo electrónico</label>
+          <input
+            id="email"
+            type="email"
+            [(ngModel)]="email"
+            name="email"
+            placeholder="tu@empresa.com"
+            autocomplete="email"
+            required />
+        </div>
+
+        <div class="field">
+          <label for="password">Contraseña</label>
+          <input
+            id="password"
+            type="password"
+            [(ngModel)]="password"
+            name="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required />
+        </div>
+
+        @if (error()) {
+          <div class="error-alert">
+            <lucide-icon name="alert-triangle" [size]="14"></lucide-icon>
+            <span>{{ error() }}</span>
+          </div>
+        }
+
+        <button type="submit" class="btn-submit" [disabled]="loading()">
+          @if (loading()) {
+            <lucide-icon name="loader" [size]="15" class="spin"></lucide-icon>
+            Ingresando...
+          } @else {
+            Ingresar
+            <lucide-icon name="arrow-right" [size]="15"></lucide-icon>
+          }
+        </button>
+      </form>
+
+      <p class="footer-note">
+        ¿No tienes cuenta? <a routerLink="/register" class="link">Regístrate gratis</a>
+      </p>
+    </div>
+  </div>
+
+</div>

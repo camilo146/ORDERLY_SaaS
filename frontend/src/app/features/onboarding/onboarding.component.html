@@ -1,0 +1,93 @@
+<div class="onboarding-page">
+
+  <!-- Header -->
+  <div class="onboarding-header">
+    <div class="brand">
+      <img src="assets/logo.png?v=20260602" alt="Orderly" class="logo" />
+      <span class="brand-name">Orderly</span>
+    </div>
+    <p class="header-sub">Configura tu negocio en menos de 30 minutos</p>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-section">
+    <div class="progress-label">
+      <span>Progreso de configuración</span>
+      <span class="progress-percent">{{ progressPercent() }}%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" [style.width.%]="progressPercent()"></div>
+    </div>
+  </div>
+
+  <!-- Steps grid -->
+  <div class="steps-grid">
+    @for (step of steps(); track step.id) {
+      <div
+        class="step-card"
+        [class.active]="currentStep() === step.id"
+        [class.completed]="step.completed"
+        (click)="goTo(step.id)"
+        role="button"
+        [attr.aria-label]="step.title">
+
+        <div class="step-number">
+          @if (step.completed) {
+            <lucide-icon name="check" [size]="16" class="check-icon"></lucide-icon>
+          } @else {
+            <span>{{ step.id + 1 }}</span>
+          }
+        </div>
+
+        <div class="step-body">
+          <div class="step-header">
+            <lucide-icon [name]="step.icon" [size]="18" class="step-icon"></lucide-icon>
+            <h3 class="step-title">{{ step.title }}</h3>
+          </div>
+          <p class="step-sub">{{ step.subtitle }}</p>
+          @if (step.minuteEstimate > 0) {
+            <span class="step-time">~{{ step.minuteEstimate }} min</span>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Active step detail -->
+  @if (activeStep(); as active) {
+    <div class="step-detail-card">
+      <div class="detail-icon-wrap">
+        <lucide-icon [name]="active.icon" [size]="32" class="detail-icon"></lucide-icon>
+      </div>
+      <div class="detail-content">
+        <h2 class="detail-title">Paso {{ active.id + 1 }}: {{ active.title }}</h2>
+        <p class="detail-sub">{{ active.subtitle }}</p>
+      </div>
+      <div class="detail-actions">
+        <a [routerLink]="getStepRoute(active.id)" class="btn-go">
+          <lucide-icon name="arrow-right" [size]="16"></lucide-icon>
+          Ir a configurar
+        </a>
+        @if (!active.completed) {
+          <button class="btn-done" (click)="completeCurrentStep()">
+            <lucide-icon name="check" [size]="16"></lucide-icon>
+            Marcar completo
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Final CTA -->
+  @if (progressPercent() === 100) {
+    <div class="complete-banner">
+      <lucide-icon name="party-popper" [size]="28"></lucide-icon>
+      <div>
+        <h3>¡Tu negocio está listo!</h3>
+        <p>Comparte tu enlace de WhatsApp y empieza a recibir pedidos.</p>
+      </div>
+      <a routerLink="/dashboard" class="btn-go">Ir al Dashboard →</a>
+    </div>
+  }
+
+</div>

@@ -1,0 +1,92 @@
+<div class="layout">
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="assets/logo.png?v=20260602" alt="Orderly" class="logo-img" />
+      <span class="logo-text">Orderly</span>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ auth.currentUser?.fullName?.charAt(0) ?? 'U' }}</div>
+      <div class="user-info">
+        <p class="user-name">{{ auth.currentUser?.fullName }}</p>
+        <p class="user-email">{{ auth.currentUser?.email }}</p>
+      </div>
+    </div>
+
+    <!-- Business selector (solo para ADMIN / OPERATOR) -->
+    @if (!auth.isSuperAdmin && businesses.length > 1) {
+      <div class="business-selector">
+        <label class="selector-label">Negocio activo</label>
+        <select [value]="activeBusinessId" (change)="switchBusiness($any($event.target).value)">
+          @for (biz of businesses; track biz.id) {
+            <option [value]="biz.id">{{ biz.name }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <!-- Nav links -->
+    <nav class="sidebar-nav">
+      @if (auth.isSuperAdmin) {
+        <a class="nav-item" routerLink="/admin" routerLinkActive="active">
+          <lucide-icon name="shield" [size]="16"></lucide-icon>
+          <span>Super Admin</span>
+        </a>
+      }
+      @if (auth.isAdmin) {
+        <a class="nav-item" routerLink="/dashboard" routerLinkActive="active">
+          <lucide-icon name="layout-dashboard" [size]="16"></lucide-icon>
+          <span>Pedidos</span>
+        </a>
+        <a class="nav-item" routerLink="/products" routerLinkActive="active">
+          <lucide-icon name="package" [size]="16"></lucide-icon>
+          <span>Productos</span>
+        </a>
+      }
+      @if (auth.isOperator && !auth.isAdmin) {
+        <a class="nav-item" routerLink="/operator" routerLinkActive="active">
+          <lucide-icon name="headphones" [size]="16"></lucide-icon>
+          <span>Operaciones</span>
+        </a>
+      }
+      @if (auth.isOperator && auth.isAdmin) {
+        <a class="nav-item" routerLink="/operator" routerLinkActive="active">
+          <lucide-icon name="headphones" [size]="16"></lucide-icon>
+          <span>Operaciones</span>
+        </a>
+      }
+      @if (auth.isAdmin) {
+        <a class="nav-item" routerLink="/onboarding" routerLinkActive="active">
+          <lucide-icon name="map" [size]="16"></lucide-icon>
+          <span>Configuración inicial</span>
+        </a>
+        <a class="nav-item" routerLink="/complaints" routerLinkActive="active">
+          <lucide-icon name="clipboard-list" [size]="16"></lucide-icon>
+          <span>Quejas y Reclamos</span>
+        </a>
+        <a class="nav-item" routerLink="/settings" routerLinkActive="active">
+          <lucide-icon name="settings" [size]="16"></lucide-icon>
+          <span>Configuración</span>
+        </a>
+        <a class="nav-item" routerLink="/billing" routerLinkActive="active">
+          <lucide-icon name="credit-card" [size]="16"></lucide-icon>
+          <span>Facturación</span>
+        </a>
+      }
+    </nav>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="logout()">
+        <lucide-icon name="log-out" [size]="15"></lucide-icon>
+        <span>Cerrar sesión</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main content ── -->
+  <main class="main-content">
+    <router-outlet />
+  </main>
+</div>

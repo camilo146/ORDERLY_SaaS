@@ -1,0 +1,501 @@
+<div class="app-shell">
+  <nav class="nav" *ngIf="isAuthenticated">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">📦</div>
+      Orderly
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-tab" [class.active]="currentView === 'dashboard' || currentView === 'detail'" *ngIf="hasBusinessAccess" (click)="showScreen('dashboard')">
+        📋 Pedidos
+      </button>
+      <button class="nav-tab" [class.active]="currentView === 'superadmin'" *ngIf="isSuperAdmin" (click)="showScreen('superadmin')">
+        🛡️ SuperAdmin
+      </button>
+      <button class="nav-tab" [class.active]="currentView === 'operator'" *ngIf="canSeeOperatorPanel" (click)="showScreen('operator')">
+        🎧 Operaciones
+      </button>
+      <button class="nav-tab" [class.active]="currentView === 'whatsapp'" (click)="showScreen('whatsapp')">
+        💬 WhatsApp → Sistema
+      </button>
+      <button class="nav-tab" [class.active]="currentView === 'mobile'" (click)="showScreen('mobile')">
+        📱 Vista móvil
+      </button>
+    </div>
+
+    <div class="nav-right">
+      <div class="badge-live">{{ apiConnected ? 'En vivo' : 'Modo demo' }}</div>
+      <div class="role-pill">{{ currentRoleLabel }}</div>
+      <div class="avatar">{{ initials }}</div>
+      <button class="nav-tab" (click)="logout()">Salir</button>
+    </div>
+  </nav>
+
+  <section id="screen-login" class="screen" *ngIf="!isAuthenticated">
+    <div class="login-card">
+      <div class="login-logo">
+        <div class="login-logo-icon">📦</div>
+        Orderly
+      </div>
+      <p class="login-subtitle">Gestión de pedidos por WhatsApp para tu negocio.<br>Angular conectado al backend real.</p>
+      <div class="login-badge">🟢 Demo interactiva</div>
+
+      <div class="demo-roles">
+        <button type="button" class="demo-role" (click)="useDemoAccount('ADMIN')">Admin demo</button>
+        <button type="button" class="demo-role" (click)="useDemoAccount('SUPER_ADMIN')">SuperAdmin</button>
+        <button type="button" class="demo-role" (click)="useDemoAccount('OPERATOR')">Operaciones</button>
+      </div>
+
+      <input class="login-field" type="email" name="email" [(ngModel)]="email" placeholder="correo@tunegocio.com">
+      <input class="login-field" type="password" name="password" [(ngModel)]="password" placeholder="Contraseña">
+
+      <button class="btn-primary" (click)="login()" [disabled]="isLoading">
+        {{ isLoading ? 'Entrando...' : 'Entrar al Panel →' }}
+      </button>
+
+      <div class="info-box">
+        Usa las credenciales del backend sembrado automáticamente y el panel cargará datos demo si no existen todavía.
+      </div>
+
+      <div class="login-features">
+        <div class="login-feat">⚡ Tiempo real</div>
+        <div class="login-feat">🛡️ Seguro</div>
+        <div class="login-feat">📱 Móvil</div>
+      </div>
+
+      <div class="error-box" *ngIf="errorMessage">{{ errorMessage }}</div>
+    </div>
+  </section>
+
+  <section id="screen-superadmin" class="screen" *ngIf="isAuthenticated && currentView === 'superadmin'">
+    <div class="page-header">
+      <h1>Panel SuperAdmin</h1>
+      <p>Vista global del sistema, negocios y operación multi-tenant.</p>
+    </div>
+
+    <div class="page-body">
+      <div class="system-grid">
+        <div class="overview-card">
+          <span class="muted">Negocios activos</span>
+          <span class="big-number">{{ systemOverview?.totalBusinesses ?? 0 }}</span>
+        </div>
+        <div class="overview-card">
+          <span class="muted">Pedidos totales</span>
+          <span class="big-number">{{ systemOverview?.totalOrders ?? 0 }}</span>
+        </div>
+        <div class="overview-card">
+          <span class="muted">Pendientes</span>
+          <span class="big-number">{{ systemOverview?.pendingOrders ?? 0 }}</span>
+        </div>
+        <div class="overview-card">
+          <span class="muted">Ingresos</span>
+          <span class="big-number">{{ formatCurrency(systemOverview?.totalRevenue ?? 0) }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="sidebar-section-title">Negocios registrados</div>
+        <div class="business-list" *ngIf="businesses.length; else noBusinessesYet">
+          <div class="business-row" *ngFor="let business of businesses">
+            <div>
+              <strong>{{ business.name }}</strong>
+              <div class="business-meta">
+                <span class="status-chip">{{ business.businessType }}</span>
+                <span class="status-chip">{{ business.status }}</span>
+              </div>
+            </div>
+            <button class="outline-btn" (click)="selectBusiness(business.id)">Abrir panel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-operator" class="screen" *ngIf="isAuthenticated && currentView === 'operator'">
+    <div class="page-header">
+      <h1>Panel de Operaciones</h1>
+      <p>Seguimiento rápido de pedidos, handoff y atención.</p>
+    </div>
+
+    <div class="page-body">
+      <div class="summary-grid">
+        <div class="overview-card">
+          <span class="muted">Negocios visibles</span>
+          <span class="big-number">{{ operatorOverview?.visibleBusinesses ?? 0 }}</span>
+        </div>
+        <div class="overview-card">
+          <span class="muted">Pendientes</span>
+          <span class="big-number">{{ operatorOverview?.pendingOrders ?? 0 }}</span>
+        </div>
+        <div class="overview-card">
+          <span class="muted">En progreso</span>
+          <span class="big-number">{{ operatorOverview?.inProgressOrders ?? 0 }}</span>
+        </div>
+        <div class="overview-card">
+          <span class="muted">Listos</span>
+          <span class="big-number">{{ operatorOverview?.readyOrders ?? 0 }}</span>
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="sidebar-section-title">Resumen operativo</div>
+        <p class="muted" style="line-height:1.7;">
+          Este panel queda listo para el equipo de soporte y operaciones. Desde aquí puedes vigilar el embudo de pedidos
+          y luego enlazar conversaciones, handoff humano y métricas en vivo.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-dashboard" class="screen" *ngIf="isAuthenticated && currentView === 'dashboard'">
+    <div class="dash-header">
+      <div class="dash-header-left">
+        <h1>Panel de Pedidos</h1>
+        <p>{{ todayLabel }} · <strong>{{ activeBusiness?.name ?? 'Sin negocio seleccionado' }}</strong></p>
+
+        <div class="business-toolbar" *ngIf="businesses.length">
+          <select class="business-select" [ngModel]="activeBusinessId" (ngModelChange)="selectBusiness($event)">
+            <option *ngFor="let business of businesses" [value]="business.id">{{ business.name }}</option>
+          </select>
+          <button class="ghost-btn" (click)="refreshWorkspace()">Actualizar</button>
+        </div>
+      </div>
+
+      <div class="dash-stats">
+        <div class="stat-pill">
+          <div>
+            <div class="stat-pill-val">{{ businessDashboard?.pendingOrders ?? 0 }}</div>
+            <div class="stat-pill-label">Nuevos</div>
+          </div>
+        </div>
+        <div class="stat-pill">
+          <div>
+            <div class="stat-pill-val">{{ businessDashboard?.inProgressOrders ?? 0 }}</div>
+            <div class="stat-pill-label">En prep.</div>
+          </div>
+        </div>
+        <div class="stat-pill">
+          <div>
+            <div class="stat-pill-val">{{ formatCurrency(businessDashboard?.totalRevenue ?? 0) }}</div>
+            <div class="stat-pill-label">Ingresos</div>
+          </div>
+        </div>
+        <button class="btn-primary" style="width:auto;padding:10px 18px;font-size:13px;" (click)="simulateNewOrder()">
+          + Simular pedido
+        </button>
+      </div>
+    </div>
+
+    <div class="kanban" *ngIf="activeBusinessId; else chooseBusiness">
+      <div class="kanban-col">
+        <div class="col-header">
+          <div class="col-title"><div class="col-dot dot-orange"></div>Nuevos pedidos</div>
+          <span class="col-count">{{ countFor('nuevo') }}</span>
+        </div>
+        <div class="col-cards">
+          <div class="order-card nuevo" *ngFor="let order of ordersFor('nuevo')" (click)="openDetail(order)">
+            <div class="card-top">
+              <span class="card-customer">{{ order.customerName }}</span>
+              <span class="card-id">#{{ shortOrderId(order.id) }}</span>
+            </div>
+            <div class="card-items">{{ formatOrderItems(order) }}</div>
+            <div class="card-bottom">
+              <span class="card-time">🕐 {{ formatRelativeTime(order.createdAt) }}</span>
+              <span class="card-total">{{ formatCurrency(order.totalAmount) }}</span>
+            </div>
+          </div>
+          <div class="empty-col" *ngIf="!countFor('nuevo')">Sin pedidos nuevos.</div>
+        </div>
+      </div>
+
+      <div class="kanban-col">
+        <div class="col-header">
+          <div class="col-title"><div class="col-dot dot-yellow"></div>En preparación</div>
+          <span class="col-count">{{ countFor('prep') }}</span>
+        </div>
+        <div class="col-cards">
+          <div class="order-card preparando" *ngFor="let order of ordersFor('prep')" (click)="openDetail(order)">
+            <div class="card-top">
+              <span class="card-customer">{{ order.customerName }}</span>
+              <span class="card-id">#{{ shortOrderId(order.id) }}</span>
+            </div>
+            <div class="card-items">{{ formatOrderItems(order) }}</div>
+            <div class="card-bottom">
+              <span class="card-time">🍳 {{ formatRelativeTime(order.createdAt) }}</span>
+              <span class="card-total">{{ formatCurrency(order.totalAmount) }}</span>
+            </div>
+          </div>
+          <div class="empty-col" *ngIf="!countFor('prep')">Nada en cocina.</div>
+        </div>
+      </div>
+
+      <div class="kanban-col">
+        <div class="col-header">
+          <div class="col-title"><div class="col-dot dot-blue"></div>Listos para entregar</div>
+          <span class="col-count">{{ countFor('listo') }}</span>
+        </div>
+        <div class="col-cards">
+          <div class="order-card listo" *ngFor="let order of ordersFor('listo')" (click)="openDetail(order)">
+            <div class="card-top">
+              <span class="card-customer">{{ order.customerName }}</span>
+              <span class="card-id">#{{ shortOrderId(order.id) }}</span>
+            </div>
+            <div class="card-items">{{ formatOrderItems(order) }}</div>
+            <div class="card-bottom">
+              <span class="card-time">📦 {{ formatRelativeTime(order.createdAt) }}</span>
+              <span class="card-total">{{ formatCurrency(order.totalAmount) }}</span>
+            </div>
+          </div>
+          <div class="empty-col" *ngIf="!countFor('listo')">Ningún pedido listo por ahora.</div>
+        </div>
+      </div>
+
+      <div class="kanban-col">
+        <div class="col-header">
+          <div class="col-title"><div class="col-dot dot-green"></div>Entregados hoy</div>
+          <span class="col-count">{{ countFor('entregado') }}</span>
+        </div>
+        <div class="col-cards">
+          <div class="order-card entregado" *ngFor="let order of ordersFor('entregado')" (click)="openDetail(order)">
+            <div class="card-top">
+              <span class="card-customer">{{ order.customerName }}</span>
+              <span class="card-id">#{{ shortOrderId(order.id) }}</span>
+            </div>
+            <div class="card-items">{{ formatOrderItems(order) }}</div>
+            <div class="card-bottom">
+              <span class="card-time">✅ {{ formatRelativeTime(order.createdAt) }}</span>
+              <span class="card-total">{{ formatCurrency(order.totalAmount) }}</span>
+            </div>
+          </div>
+          <div class="empty-col" *ngIf="!countFor('entregado')">Todavía no hay entregados.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-detail" class="screen" *ngIf="isAuthenticated && currentView === 'detail' && selectedOrder">
+    <div class="detail-content">
+      <div class="detail-main">
+        <button class="back-btn" (click)="showScreen('dashboard')">← Volver al panel</button>
+
+        <div class="order-header">
+          <div class="order-header-left">
+            <h2>Pedido <span class="highlight-shine">#{{ shortOrderId(selectedOrder.id) }}</span></h2>
+            <div class="order-meta">
+              <span class="order-meta-item">🕐 {{ formatRelativeTime(selectedOrder.createdAt) }}</span>
+              <span class="order-meta-item">📍 {{ selectedOrder.deliveryType }}</span>
+              <span class="card-status-badge" [ngClass]="statusBadgeClass(selectedOrder.status)">
+                {{ statusLabel(selectedOrder.status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="section-label">Productos del pedido</div>
+          <div *ngFor="let item of selectedOrder.items" class="item-row">
+            <div><span class="item-qty">{{ item.quantity }}</span><span class="item-name">{{ item.productName }}</span></div>
+            <span class="item-price">{{ formatCurrency(item.subtotal) }}</span>
+          </div>
+        </div>
+
+        <div class="total-row">
+          <span>Total del pedido</span>
+          <span>{{ formatCurrency(selectedOrder.totalAmount) }}</span>
+        </div>
+
+        <div class="detail-section">
+          <div class="section-label">Notas del cliente</div>
+          <p class="muted" style="font-style:italic;line-height:1.7;">{{ selectedOrder.notes || 'Sin observaciones especiales en este pedido.' }}</p>
+        </div>
+      </div>
+
+      <div class="detail-sidebar">
+        <div>
+          <div class="sidebar-section-title">Cliente</div>
+          <div class="customer-card">
+            <div class="customer-avatar">{{ selectedOrder.customerName.charAt(0) }}</div>
+            <div>
+              <div class="customer-name">{{ selectedOrder.customerName }}</div>
+              <div class="customer-phone">📱 {{ selectedOrder.customerWhatsapp }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="sidebar-section-title">Estado del pedido</div>
+          <div class="status-steps">
+            <div class="status-step">
+              <div class="step-dot done">✓</div>
+              <div><strong>Pedido recibido</strong><br><span class="muted">Capturado por Orderly</span></div>
+            </div>
+            <div class="status-step">
+              <div class="step-dot" [ngClass]="{ done: isStepDone('IN_PROGRESS'), current: isStepCurrent('IN_PROGRESS') }">🍳</div>
+              <div><strong>En preparación</strong><br><span class="muted">Cocina trabajando</span></div>
+            </div>
+            <div class="status-step">
+              <div class="step-dot" [ngClass]="{ done: isStepDone('READY'), current: isStepCurrent('READY') }">📦</div>
+              <div><strong>Listo para entregar</strong><br><span class="muted">Esperando despacho</span></div>
+            </div>
+            <div class="status-step">
+              <div class="step-dot" [ngClass]="{ done: isStepDone('DELIVERED'), current: isStepCurrent('DELIVERED') }">🛵</div>
+              <div><strong>Entregado</strong><br><span class="muted">Pedido completado</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="sidebar-section-title">Acciones</div>
+          <div class="action-btns">
+            <button class="btn-action btn-orange" *ngIf="!isStepDone('IN_PROGRESS')" (click)="updateSelectedOrderStatus('IN_PROGRESS')">🍳 Enviar a cocina</button>
+            <button class="btn-action btn-orange" *ngIf="!isStepDone('READY')" (click)="updateSelectedOrderStatus('READY')">📦 Marcar como listo</button>
+            <button class="btn-action btn-green" *ngIf="!isStepDone('DELIVERED')" (click)="updateSelectedOrderStatus('DELIVERED')">🛵 Marcar como entregado</button>
+            <button class="btn-action btn-outline" (click)="notifyWhatsApp()">💬 Notificar al cliente</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="sidebar-section-title">Agregar nota</div>
+          <textarea class="note-input" [(ngModel)]="noteDraft" placeholder="Ej: entregar en portería, sin salsas..."></textarea>
+          <button class="btn-action btn-outline" style="margin-top:8px;" (click)="saveNote()">💾 Guardar nota</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-whatsapp" class="screen" *ngIf="isAuthenticated && currentView === 'whatsapp'">
+    <div class="wa-header">
+      <h2>💬 WhatsApp → <span style="color:var(--orange)">Orderly</span></h2>
+      <p>Así se transforma el caos en un pedido organizado automáticamente.</p>
+    </div>
+
+    <div class="wa-split">
+      <div class="wa-chaos">
+        <div class="wa-chaos-header">
+          <div style="width:38px;height:38px;background:#128C7E;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;">📱</div>
+          <div>
+            <strong>Restaurante El Sabor</strong><br>
+            <span>+57 300 123 4567</span>
+          </div>
+        </div>
+
+        <div class="wa-chaos-messages">
+          <div class="wa-msg recv">
+            <div class="chaos-label">Cliente #1</div>
+            hola buenas, me regala 2 hamburguesas con papas y 2 limonadas con poco azúcar. es a domicilio.
+            <div class="wa-msg-time">1:12 pm ✓✓</div>
+          </div>
+          <div class="wa-msg sent">
+            claro, te confirmo enseguida.
+            <div class="wa-msg-time">1:14 pm ✓✓</div>
+          </div>
+          <div class="wa-msg recv">
+            <div class="chaos-label">Cliente #2</div>
+            tienen costillas? pídame 2 y una coca cola.
+            <div class="wa-msg-time">1:21 pm ✓</div>
+          </div>
+          <div class="wa-msg recv">
+            <div class="chaos-label">Cliente #3</div>
+            quiero 3 pechugas y una ensalada, pago en efectivo.
+            <div class="wa-msg-time">1:31 pm ✓</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wa-divider"><div class="wa-arrow">→</div></div>
+
+      <div class="wa-order">
+        <div class="wa-chaos-header" style="background:white;color:var(--text);border-bottom:1px solid var(--border);">
+          <div class="wa-order-icon">📦</div>
+          <div>
+            <strong>Orderly — Pedidos organizados</strong><br>
+            <span style="color:var(--text2)">Conversión automática en tiempo real</span>
+          </div>
+        </div>
+
+        <div class="wa-order-content">
+          <div class="info-box" style="margin-top:0;">✅ Mensajes detectados y convertidos en pedidos estructurados.</div>
+
+          <div class="parsed-card">
+            <div class="order-label">Pedido detectado</div>
+            <div class="row-between">
+              <div>
+                <div class="parsed-label">Cliente</div>
+                <strong>Valentina Ruiz</strong>
+              </div>
+              <div class="big-number" style="font-size:20px;">{{ formatCurrency(58000) }}</div>
+            </div>
+          </div>
+
+          <div class="parsed-card">
+            <div class="order-label">Automatización</div>
+            <p class="muted" style="line-height:1.7;">
+              El frontend ya está listo para enchufarse al worker de WhatsApp y al flujo de notificaciones del backend.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-mobile" class="screen" *ngIf="isAuthenticated && currentView === 'mobile'">
+    <div class="mobile-section-header">
+      <div class="tag" style="background:var(--orange-light);color:var(--orange);">📱 Vista móvil</div>
+      <h2>Gestiona desde tu celular</h2>
+      <p>Tu negocio en la palma de la mano, donde quieras.</p>
+    </div>
+
+    <div class="phone-frame">
+      <div class="phone-notch"></div>
+      <div class="phone-screen">
+        <div class="mobile-nav">
+          <div class="nav-logo">Orderly<span style="color:var(--orange)">.</span></div>
+          <div class="badge-live">En vivo</div>
+        </div>
+
+        <div class="mobile-filter-bar">
+          <button class="mobile-filter-chip active">Todos ({{ orders.length }})</button>
+          <button class="mobile-filter-chip">🔥 Nuevos ({{ countFor('nuevo') }})</button>
+          <button class="mobile-filter-chip">⏱ Prep ({{ countFor('prep') }})</button>
+          <button class="mobile-filter-chip">📦 Listos ({{ countFor('listo') }})</button>
+        </div>
+
+        <div class="mobile-orders">
+          <div class="mobile-order-card" *ngFor="let order of orders.slice(0, 4)">
+            <div class="mobile-card-top">
+              <span class="mobile-card-name">{{ order.customerName }}</span>
+              <span class="card-status-badge" [ngClass]="statusBadgeClass(order.status)">{{ statusLabel(order.status) }}</span>
+            </div>
+            <div class="mobile-card-items">{{ formatOrderItems(order) }}</div>
+            <div class="mobile-card-bottom">
+              <span class="card-total">{{ formatCurrency(order.totalAmount) }}</span>
+              <div class="mobile-btn-row">
+                <button class="mobile-btn ghost" (click)="openDetail(order)">Ver</button>
+                <button class="mobile-btn orange" (click)="showToast('Pedido actualizado desde móvil')">Acción</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mobile-tabs">
+          <div class="mobile-tab active"><span>📋</span><span>Pedidos</span></div>
+          <div class="mobile-tab"><span>💬</span><span>WhatsApp</span></div>
+          <div class="mobile-tab"><span>📊</span><span>Stats</span></div>
+          <div class="mobile-tab"><span>⚙️</span><span>Config</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="success-toast" *ngIf="toastMessage">{{ toastMessage }}</div>
+
+  <ng-template #noBusinessesYet>
+    <div class="empty-state">Aún no hay negocios registrados en el sistema.</div>
+  </ng-template>
+
+  <ng-template #chooseBusiness>
+    <div class="page-body">
+      <div class="empty-state">Selecciona un negocio para cargar el tablero de pedidos.</div>
+    </div>
+  </ng-template>
+</div>

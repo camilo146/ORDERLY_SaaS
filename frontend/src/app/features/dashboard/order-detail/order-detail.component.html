@@ -1,0 +1,124 @@
+@if (loading()) {
+  <div class="loading-screen"><div class="spinner"></div><p>Cargando pedido...</p></div>
+} @else if (error()) {
+  <div class="detail-wrap">
+    <div class="alert alert-error">? {{ error() }}</div>
+    <button class="btn btn-secondary" (click)="goBack()">? Volver al tablero</button>
+  </div>
+} @else if (order()) {
+  <div class="detail-wrap">
+    <div class="detail-header">
+      <button class="btn-back" (click)="goBack()">? Tablero</button>
+      <div>
+        <h1 class="order-title">Pedido #{{ order()!.id.slice(-8).toUpperCase() }}</h1>
+        <p class="order-date">{{ formatDate(order()!.createdAt) }}</p>
+      </div>
+    </div>
+
+    <!-- Status tracker -->
+    <div class="status-tracker">
+      @for (st of statusFlow; track st; let i = $index) {
+        <div class="tracker-step"
+          [class.done]="statusIndex(order()!.status) > i"
+          [class.active]="statusIndex(order()!.status) === i"
+          [class.cancelled]="order()!.status === 'CANCELLED'">
+          <div class="step-dot"></div>
+          <span class="step-label">{{ statusLabels[st] }}</span>
+        </div>
+      }
+    </div>
+
+    <div class="detail-grid">
+      <!-- Customer info -->
+      <div class="detail-card">
+        <h3 class="card-title">Cliente</h3>
+        <dl class="info-list">
+          <dt>Nombre</dt><dd>{{ order()!.customerName }}</dd>
+          <dt>WhatsApp</dt><dd>{{ order()!.customerWhatsapp }}</dd>
+          <dt>Entrega</dt><dd>{{ order()!.deliveryType === 'PICKUP' ? 'Recogida' : 'Domicilio' }}</dd>
+          @if (order()!.notes) {
+            <dt>Notas</dt><dd>{{ order()!.notes }}</dd>
+          }
+        </dl>
+      </div>
+
+      <!-- Order summary -->
+      <div class="detail-card">
+        <h3 class="card-title">Resumen del pedido</h3>
+        @if (order()!.items && order()!.items.length) {
+          <table class="items-table">
+            <thead>
+              <tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr>
+            </thead>
+            <tbody>
+              @for (item of order()!.items; track item.productId) {
+                <tr>
+                  <td>{{ item.productName }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td>{{ formatCurrency(item.unitPrice) }}</td>
+                  <td>{{ formatCurrency(item.subtotal) }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td colspan="3">Total</td>
+                <td>{{ formatCurrency(order()!.totalAmount) }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        } @else {
+          <p class="empty-items">Sin �tems registrados</p>
+          <p class="total-summary">Total: {{ formatCurrency(order()!.totalAmount) }}</p>
+        }
+      </div>
+    </div>
+
+    <!-- Status actions -->
+    @if (!['DELIVERED','CANCELLED'].includes(order()!.status)) {
+      <div class="action-bar">
+        <h3 class="card-title">Cambiar estado</h3>
+        <div class="status-buttons">
+          @for (st of statusFlow; track st) {
+            @if (statusIndex(st) > statusIndex(order()!.status)) {
+              <button class="btn btn-secondary btn-sm" [disabled]="saving()" (click)="setStatus(st)">
+                ? {{ statusLabels[st] }}
+              </button>
+            }
+          }
+          <button class="btn btn-danger btn-sm" [disabled]="saving()" (click)="setStatus('CANCELLED')">
+            ? Cancelar pedido
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (order()!.status === 'DELIVERED') {
+      <div class="delivered-banner">? Pedido entregado correctamente</div>
+    }
+    @if (order()!.status === 'CANCELLED') {
+      <div class="cancelled-banner">? Pedido cancelado</div>
+    }
+
+    <!-- Payment proof section -->
+    @if (order()!.paymentMethod && order()!.paymentMethod!.toLowerCase().includes('transferencia')) {
+      <div class="detail-card proof-card">
+        <h3 class="card-title">Comprobante de transferencia</h3>
+        <p class="proof-method">Método de pago: <strong>{{ order()!.paymentMethod }}</strong></p>
+
+        @if (order()!.paymentProofUrl) {
+          <div class="proof-image-wrap">
+            <img [src]="order()!.paymentProofUrl!" alt="Comprobante de pago" class="proof-image" />
+          </div>
+        } @else {
+          <p class="proof-missing">Aún no se ha recibido el comprobante.</p>
+        }
+
+        <label class="btn btn-secondary btn-sm proof-upload-btn" [class.disabled]="saving()">
+          Subir / actualizar comprobante
+          <input type="file" accept="image/*" style="display:none" (change)="onProofFileSelected($event)" [disabled]="saving()" />
+        </label>
+      </div>
+    }
+  </div>
+}

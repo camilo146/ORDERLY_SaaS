@@ -1,0 +1,370 @@
+﻿<div class="register-page">
+  <div class="register-box">
+
+    <!-- Logo & Brand -->
+    <div class="brand">
+      <div class="brand-mark">
+        <lucide-icon name="package" [size]="16" class="brand-icon-svg"></lucide-icon>
+      </div>
+      <span class="brand-name">Orderly</span>
+    </div>
+
+    <!-- Step progress (only steps 1â5 visible in bar) -->
+    @if (step() <= 6) {
+      <div class="steps">
+        @for (s of [1,2,3,4,5,6]; track s) {
+          <div class="step-item" [class.active]="step() === s" [class.done]="step() > s">
+            <div class="step-circle">
+              @if (step() > s) {
+                <lucide-icon name="check" [size]="12"></lucide-icon>
+              } @else {
+                {{ s }}
+              }
+            </div>
+            <span class="step-label">{{
+              s === 1 ? 'Cuenta' :
+              s === 2 ? 'Negocio' :
+              s === 3 ? 'Config' :
+              s === 4 ? 'Productos' :
+              s === 5 ? 'Mascota' :
+              'WhatsApp'
+            }}</span>
+          </div>
+          @if (s < 6) { <div class="step-line" [class.done]="step() > s"></div> }
+        }
+      </div>
+    }
+
+    <!-- Error banner -->
+    @if (errorMsg()) {
+      <div class="error-banner">
+        <lucide-icon name="alert-triangle" [size]="14"></lucide-icon>
+        {{ errorMsg() }}
+      </div>
+    }
+
+    <!-- ââ STEP 1: Cuenta ââââââââââââââââââââââââââââââââââââââââââââââââ -->
+    @if (step() === 1) {
+      <div class="step-content">
+        <div class="trial-notice">
+          <lucide-icon name="zap" [size]="14"></lucide-icon>
+          <strong>7 días de prueba gratuita</strong> — sin tarjeta de crédito
+        </div>
+        <h2>Crea tu cuenta</h2>
+        <p class="subtitle">Listo en 30 minutos &middot; Cancela cuando quieras</p>
+
+        <div class="field">
+          <label>Nombre completo</label>
+          <input type="text" [(ngModel)]="fullName" placeholder="María González" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label>Correo electrónico</label>
+          <input type="email" [(ngModel)]="email" placeholder="maria@minegocio.com" autocomplete="email" />
+        </div>
+        <div class="field">
+          <label>Contraseña <span class="hint">(mínimo 8 caracteres)</span></label>
+          <input type="password" [(ngModel)]="password" placeholder="â¢â¢â¢â¢â¢â¢â¢â¢" autocomplete="new-password" />
+        </div>
+        <div class="field">
+          <label>Confirmar contraseña</label>
+          <input type="password" [(ngModel)]="confirmPassword" placeholder="â¢â¢â¢â¢â¢â¢â¢â¢" autocomplete="new-password" />
+          @if (confirmPassword && password !== confirmPassword) {
+            <span class="field-error">Las contraseñas no coinciden</span>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ââ STEP 2: Tipo de negocio âââââââââââââââââââââââââââââââââââââââ -->
+    @if (step() === 2) {
+      <div class="step-content">
+        <h2>Tipo de negocio</h2>
+        <p class="subtitle">Preconfiguraremos tu catálogo y mensajes automáticamente</p>
+
+        <div class="biz-grid">
+          @for (biz of businessTypes; track biz.value) {
+            <button
+              class="biz-card"
+              [class.selected]="selectedType() === biz.value"
+              (click)="selectType(biz.value)">
+              <lucide-icon [name]="biz.icon" [size]="22" class="biz-icon-svg"></lucide-icon>
+              <span class="biz-label">{{ biz.label }}</span>
+              <span class="biz-desc">{{ biz.description }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ââ STEP 3: Datos del negocio âââââââââââââââââââââââââââââââââââââ -->
+    @if (step() === 3) {
+      <div class="step-content">
+        <h2>Datos de tu negocio</h2>
+        <p class="subtitle">Información básica y métodos de pago aceptados</p>
+
+        <div class="field">
+          <label>Nombre del negocio</label>
+          <input type="text" [(ngModel)]="businessName" placeholder="Ej: Restaurante La Fonda" />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>País</label>
+            <select [(ngModel)]="countryCode">
+              <option value="CO">Colombia</option>
+              <option value="MX">México</option>
+              <option value="PE">Perú</option>
+              <option value="AR">Argentina</option>
+              <option value="VE">Venezuela</option>
+              <option value="EC">Ecuador</option>
+              <option value="CL">Chile</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Moneda</label>
+            <select [(ngModel)]="currencyCode">
+              <option value="COP">COP</option>
+              <option value="MXN">MXN</option>
+              <option value="PEN">PEN</option>
+              <option value="ARS">ARS</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Métodos de pago que aceptas</label>
+          <div class="payment-grid">
+              @for (method of paymentMethodStates(); track method.name) {
+                <div class="payment-item">
+                  <label class="payment-check" [class.checked]="method.checked">
+                    <input type="checkbox"
+                        [(ngModel)]="method.checked"
+                      (change)="onPaymentChecked(method)" />
+                    {{ method.name }}
+                  </label>
+                  @if (method.checked) {
+                    <input type="text"
+                      class="payment-detail-input input"
+                      placeholder="Nro. cuenta / Detalle"
+                      [(ngModel)]="method.details" />
+                  }
+                </div>
+              }
+            </div>
+            @if (!hasPaymentSelected()) {
+            <span class="field-error">Selecciona al menos un método de pago</span>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ââ STEP 4: Catálogo inicial ââââââââââââââââââââââââââââââââââââââ -->
+    @if (step() === 4) {
+      <div class="step-content">
+        <h2>Catálogo inicial</h2>
+        <p class="subtitle">Agrega 3 productos para comenzar. Imágenes y más detalles los agregas después.</p>
+
+        <div class="products-list">
+          @for (prod of products(); track prod) {
+            <div class="product-card">
+              <div class="product-num">{{ $index + 1 }}</div>
+              <div class="product-fields">
+                <input
+                  type="text"
+                  class="prod-name"
+                  [ngModel]="prod.name"
+                  (ngModelChange)="updateProduct($index, 'name', $event)"
+                  placeholder="Nombre del producto" />
+                <div class="prod-price-wrap">
+                  <span class="currency-symbol">$</span>
+                  <input
+                    type="number"
+                    class="prod-price"
+                    [ngModel]="prod.price"
+                    (ngModelChange)="updateProduct($index, 'price', +$event)"
+                    placeholder="0"
+                    min="0" />
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <p class="tip">
+          <lucide-icon name="zap" [size]="13"></lucide-icon>
+          Escogiste <strong>{{ selectedTypeObj()?.label }}</strong> â ya pre-llenamos productos típicos.
+        </p>
+      </div>
+    }
+
+    <!-- ââ STEP 5: Conectar WhatsApp (QR) ââââââââââââââââââââââââââââââââ -->
+
+    <!-- ── STEP 5: Mascota del bot ─────────────────────────────────────────────── -->
+    @if (step() === 5) {
+      <div class="step-content">
+        <h2>Dale vida a tu bot 🐾</h2>
+        <p class="subtitle">Elige una mascota y un nombre — así te conocerán tus clientes por WhatsApp</p>
+
+        <div class="field">
+          <label>Nombre de tu mascota <span class="hint">(el bot usará este nombre)</span></label>
+          <input
+            type="text"
+            [(ngModel)]="botName"
+            placeholder="Ej: Pepe, Luna, Coco..."
+            maxlength="60"
+            class="mascot-name-input" />
+        </div>
+
+        <div class="field">
+          <label>Elige tu mascota</label>
+          <div class="mascot-grid">
+            @for (mascot of mascotOptions; track mascot.emoji) {
+              <button
+                type="button"
+                class="mascot-card"
+                [class.selected]="botEmoji === mascot.emoji"
+                (click)="botEmoji = mascot.emoji">
+                <span class="mascot-emoji">{{ mascot.emoji }}</span>
+                <span class="mascot-label">{{ mascot.label }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (botName && botEmoji) {
+          <div class="mascot-preview">
+            <span class="mascot-preview-label">Vista previa del saludo:</span>
+            <div class="mascot-preview-bubble">
+              ¡Hola! Soy <strong>{{ botName }}</strong> {{ botEmoji }}, el asistente virtual de <em>{{ businessName }}</em> 😊<br>
+              ¿En qué te puedo ayudar hoy?
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+@if (step() === 6) {
+      <div class="step-content center">
+        <div class="wa-header">
+          <div class="wa-icon-wrap">
+            <lucide-icon name="message-circle" [size]="24"></lucide-icon>
+          </div>
+          <h2>Conecta tu WhatsApp</h2>
+          <p class="subtitle">Escanea el QR con tu teléfono para vincular tu número de negocio</p>
+        </div>
+
+        <div class="qr-container">
+          <!-- QR cargando -->
+          @if (qrStatus() === 'loading' || qrStatus() === 'waiting') {
+            <div class="qr-loading">
+              <lucide-icon name="loader" [size]="36" class="spin"></lucide-icon>
+              <p>Generando código QR...</p>
+            </div>
+          }
+          <!-- QR listo -->
+          @if (qrStatus() === 'qr' && qrBase64()) {
+            <img [src]="qrBase64()!" alt="QR WhatsApp" class="qr-image" />
+            <div class="qr-steps">
+              <p>1. Abre <strong>WhatsApp</strong> en tu celular</p>
+              <p>2. Menú → <strong>Dispositivos vinculados</strong> → Vincular</p>
+              <p>3. Apunta la cámara a este código QR</p>
+            </div>
+          }
+          <!-- Ya conectado -->
+          @if (qrStatus() === 'open') {
+            <div class="qr-connected">
+              <lucide-icon name="check-circle" [size]="52" style="color: #25d366"></lucide-icon>
+              <p><strong>¡WhatsApp conectado!</strong></p>
+              <p class="subtitle">Tu número ya está vinculado y listo para recibir pedidos.</p>
+            </div>
+          }
+        </div>
+
+        <button class="btn btn-wa btn-full" (click)="confirmQr()">
+          @if (qrStatus() === 'open') {
+            <lucide-icon name="check" [size]="15"></lucide-icon>
+            Continuar al panel
+          } @else {
+            <lucide-icon name="check" [size]="15"></lucide-icon>
+            Ya escaneé el QR
+          }
+        </button>
+
+        <button class="btn btn-skip" (click)="finishOnboarding()">
+          Hacerlo más tarde
+        </button>
+      </div>
+    }
+
+    <!-- ââ STEP 6: Listo ââââââââââââââââââââââââââââââââââââââââââââââââââ -->
+    @if (step() === 7) {
+      <div class="step-content center">
+        <div class="success-anim">
+          <lucide-icon name="check-circle" [size]="52"></lucide-icon>
+        </div>
+        <h2>Tu negocio está listo</h2>
+        <p class="subtitle">Ya puedes recibir pedidos por WhatsApp</p>
+
+        <div class="summary-card slim">
+          <div class="summary-row">
+            <lucide-icon name="package" [size]="15"></lucide-icon>
+            <span>Catálogo con {{ products().length }} productos creado</span>
+          </div>
+          <div class="summary-row">
+            <lucide-icon name="message-circle" [size]="15"></lucide-icon>
+            <span>WhatsApp conectado y activo</span>
+          </div>
+          <div class="summary-row">
+            <lucide-icon name="zap" [size]="15"></lucide-icon>
+            <span>Listo para recibir tu primer pedido</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full" (click)="finishOnboarding()">
+          Ir a mi panel
+          <lucide-icon name="arrow-right" [size]="15"></lucide-icon>
+        </button>
+      </div>
+    }
+
+    <!-- Navigation buttons (steps 1â4 only) -->
+    @if (step() >= 1 && step() <= 5) {
+      <div class="nav-buttons">
+        @if (step() > 1) {
+          <button class="btn btn-secondary" (click)="back()" [disabled]="loading()">
+            <lucide-icon name="chevron-left" [size]="15"></lucide-icon>
+            Atrás
+          </button>
+        }
+        @if (step() < 5) {
+          <button class="btn btn-primary" (click)="next()" [disabled]="!canNext()">
+            Continuar
+            <lucide-icon name="chevron-right" [size]="15"></lucide-icon>
+          </button>
+        }
+        @if (step() === 5) {
+          <button class="btn btn-primary btn-full" (click)="next()" [disabled]="!canNext() || loading()">
+            @if (loading()) {
+              <lucide-icon name="loader" [size]="15" class="spin"></lucide-icon>
+              Creando cuenta...
+            } @else {
+              <lucide-icon name="zap" [size]="15"></lucide-icon>
+              Crear cuenta y conectar WhatsApp
+            }
+          </button>
+        }
+      </div>
+    }
+
+    <!-- Login link -->
+    @if (step() === 1) {
+      <p class="login-link">
+        Â¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a>
+      </p>
+    }
+  </div>
+</div>
+
+
+

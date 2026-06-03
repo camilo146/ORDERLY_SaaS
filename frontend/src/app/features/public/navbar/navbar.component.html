@@ -1,0 +1,46 @@
+<header class="nav" [class.scrolled]="scrolled()">
+  <div class="nav-inner">
+
+    <a routerLink="/" class="logo" (click)="close()">
+      <img src="assets/logo.png?v=20260602" alt="Orderly" width="32" height="32">
+      <span>Orderly</span>
+    </a>
+
+    <nav class="links">
+      <a routerLink="/features" routerLinkActive="active" (click)="close()">Características</a>
+      <a routerLink="/pricing" routerLinkActive="active" (click)="close()">Precios</a>
+      <a routerLink="/faq" routerLinkActive="active" (click)="close()">FAQ</a>
+      <a routerLink="/contact" routerLinkActive="active" (click)="close()">Contacto</a>
+    </nav>
+
+    <div class="actions">
+      <a routerLink="/login" class="btn btn-ghost btn-sm">Iniciar sesión</a>
+      <a routerLink="/register" class="btn btn-primary btn-sm">Comenzar gratis →</a>
+    </div>
+
+    <button class="burger" (click)="toggle()" [attr.aria-expanded]="mobileOpen()">
+      @if (mobileOpen()) {
+        <lucide-icon name="x" [size]="20" />
+      } @else {
+        <lucide-icon name="menu" [size]="20" />
+      }
+    </button>
+
+  </div>
+
+  @if (mobileOpen()) {
+    <div class="mobile-menu">
+      <nav>
+        <a routerLink="/" (click)="close()">Inicio</a>
+        <a routerLink="/features" (click)="close()">Características</a>
+        <a routerLink="/pricing" (click)="close()">Precios</a>
+        <a routerLink="/faq" (click)="close()">FAQ</a>
+        <a routerLink="/contact" (click)="close()">Contacto</a>
+      </nav>
+      <div class="mobile-actions">
+        <a routerLink="/login" class="btn btn-ghost btn-sm" (click)="close()">Iniciar sesión</a>
+        <a routerLink="/register" class="btn btn-primary btn-sm" (click)="close()">Comenzar gratis</a>
+      </div>
+    </div>
+  }
+</header>

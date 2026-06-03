@@ -1,0 +1,448 @@
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-bg-glow"></div>
+
+  <div class="container">
+    <div class="hero-inner">
+
+      <a routerLink="/features" class="hero-badge">
+        <span class="badge-dot"></span>
+        Nuevo · Bot con inteligencia conversacional
+        <lucide-icon name="chevron-right" [size]="13" [strokeWidth]="2.5" />
+      </a>
+
+      <h1>
+        Tu negocio en WhatsApp,<br>
+        <span class="gradient-text">automatizado y listo</span><br>
+        para vender
+      </h1>
+
+      <p class="hero-sub">
+        Orderly convierte WhatsApp en tu canal de ventas inteligente.
+        Bot 24/7, gestión de pedidos en tiempo real y panel de control para tu equipo.
+      </p>
+
+      <div class="hero-actions">
+        <a routerLink="/register" class="btn btn-primary btn-lg">
+          Comenzar gratis
+          <lucide-icon name="arrow-right" [size]="16" />
+        </a>
+        <a routerLink="/features" class="btn btn-ghost btn-lg">Ver cómo funciona</a>
+      </div>
+
+      <p class="hero-note">
+        <lucide-icon name="check" [size]="13" />
+        7 días gratis &nbsp;·&nbsp;
+        <lucide-icon name="check" [size]="13" />
+        Sin tarjeta de crédito &nbsp;·&nbsp;
+        <lucide-icon name="check" [size]="13" />
+        Cancela cuando quieras
+      </p>
+
+    </div>
+
+    <!-- ─── Dashboard mockup ─── -->
+    <div class="hero-visual">
+      <div class="mockup-glow"></div>
+      <div class="dashboard-mockup">
+
+        <!-- Title bar -->
+        <div class="mockup-bar">
+          <div class="bar-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <span class="bar-title">Orderly · Panel de pedidos</span>
+          <div class="bar-live">
+            <span class="live-pulse"></span>
+            En vivo
+          </div>
+        </div>
+
+        <!-- Kanban board -->
+        <div class="kanban">
+          <!-- PENDIENTE -->
+          <div class="k-col">
+            <div class="k-header">
+              <span class="k-dot" style="background: var(--color-warning)"></span>
+              <span class="k-col-name">Pendiente</span>
+              <span class="k-badge">3</span>
+            </div>
+            <div class="k-card k-card-new">
+              <div class="k-new-pill">Nuevo</div>
+              <div class="k-customer">Ana Pérez</div>
+              <div class="k-items">Sushi x8 · Miso x1</div>
+              <div class="k-foot">
+                <span class="k-amount">$32.00</span>
+                <span class="k-time">ahora</span>
+              </div>
+            </div>
+            <div class="k-card">
+              <div class="k-customer">María García</div>
+              <div class="k-items">Hamburguesa x2 · Papas</div>
+              <div class="k-foot">
+                <span class="k-amount">$24.50</span>
+                <span class="k-time">3 min</span>
+              </div>
+            </div>
+            <div class="k-card">
+              <div class="k-customer">Carlos Ruiz</div>
+              <div class="k-items">Pizza Marg. x1 · Coca x2</div>
+              <div class="k-foot">
+                <span class="k-amount">$21.00</span>
+                <span class="k-time">7 min</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- CONFIRMADO -->
+          <div class="k-col">
+            <div class="k-header">
+              <span class="k-dot" style="background: #60a5fa"></span>
+              <span class="k-col-name">Confirmado</span>
+              <span class="k-badge">2</span>
+            </div>
+            <div class="k-card">
+              <div class="k-customer">Laura Martínez</div>
+              <div class="k-items">Tacos x3 · Agua x2</div>
+              <div class="k-foot">
+                <span class="k-amount">$19.50</span>
+                <span class="k-time">9 min</span>
+              </div>
+            </div>
+            <div class="k-card">
+              <div class="k-customer">Pedro Soto</div>
+              <div class="k-items">Pollo asado x1 · Arroz</div>
+              <div class="k-foot">
+                <span class="k-amount">$16.00</span>
+                <span class="k-time">13 min</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- EN CAMINO -->
+          <div class="k-col">
+            <div class="k-header">
+              <span class="k-dot" style="background: var(--color-primary)"></span>
+              <span class="k-col-name">En camino</span>
+              <span class="k-badge">1</span>
+            </div>
+            <div class="k-card">
+              <div class="k-customer">Roberto López</div>
+              <div class="k-items">Menú del día x2</div>
+              <div class="k-foot">
+                <span class="k-amount">$26.00</span>
+                <span class="k-time">19 min</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ENTREGADO -->
+          <div class="k-col">
+            <div class="k-header">
+              <span class="k-dot" style="background: var(--color-success)"></span>
+              <span class="k-col-name">Entregado</span>
+              <span class="k-badge">7</span>
+            </div>
+            <div class="k-card k-card-done">
+              <div class="k-customer">Sofia Reyes</div>
+              <div class="k-items">Ensalada · Jugo natural</div>
+              <div class="k-foot">
+                <span class="k-amount">$18.50</span>
+                <span class="k-check">✓</span>
+              </div>
+            </div>
+            <div class="k-card k-card-done">
+              <div class="k-customer">Diego Muñoz</div>
+              <div class="k-items">Sandwich x2</div>
+              <div class="k-foot">
+                <span class="k-amount">$14.00</span>
+                <span class="k-check">✓</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ TRUST BAR ═══════════════ -->
+<section class="trust">
+  <div class="container">
+    <p>Más de <strong>300 negocios</strong> en Latinoamérica gestionan sus pedidos con Orderly</p>
+    <div class="trust-types">
+      <span><lucide-icon name="utensils" [size]="14" /> Restaurantes</span>
+      <span class="sep">·</span>
+      <span><lucide-icon name="pill" [size]="14" /> Farmacias</span>
+      <span class="sep">·</span>
+      <span><lucide-icon name="store" [size]="14" /> Tiendas</span>
+      <span class="sep">·</span>
+      <span><lucide-icon name="package" [size]="14" /> Distribuidores</span>
+      <span class="sep">·</span>
+      <span><lucide-icon name="utensils" [size]="14" /> Cafeterías</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ HOW IT WORKS ═══════════════ -->
+<section class="how">
+  <div class="container">
+    <div class="section-head">
+      <span class="label">Cómo funciona</span>
+      <h2>Configurado en minutos,<br>funcionando para siempre</h2>
+      <p>Sin instalaciones complicadas. Sin código. En 30 minutos tu bot está recibiendo pedidos.</p>
+    </div>
+
+    <div class="steps">
+      @for (step of steps; track step.num; let last = $last) {
+        <div class="step">
+          <div class="step-num">{{ step.num }}</div>
+          <div class="step-icon-wrap">
+            <lucide-icon [name]="step.icon" [size]="20" />
+          </div>
+          <h3>{{ step.title }}</h3>
+          <p>{{ step.desc }}</p>
+        </div>
+        @if (!last) {
+          <div class="step-connector">
+            <lucide-icon name="chevron-right" [size]="18" />
+          </div>
+        }
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FEATURES GRID ═══════════════ -->
+<section class="features-section">
+  <div class="container">
+    <div class="section-head">
+      <span class="label">Características</span>
+      <h2>Todo lo que tu negocio<br>necesita en un solo lugar</h2>
+    </div>
+
+    <div class="features-grid">
+      @for (f of features; track f.title) {
+        <div class="feat-card">
+          <div class="feat-icon">
+            <lucide-icon [name]="f.icon" [size]="18" />
+          </div>
+          <h3>{{ f.title }}</h3>
+          <p>{{ f.description }}</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ BOT IN ACTION ═══════════════ -->
+<section class="bot-section">
+  <div class="container">
+    <div class="bot-grid">
+
+      <div class="bot-content">
+        <span class="label">El bot en acción</span>
+        <h2>Conversaciones reales,<br>pedidos automáticos</h2>
+        <p>Tu bot guía a cada cliente desde el saludo hasta la confirmación del pedido. Sin intervención humana, sin errores, disponible las 24 horas del día.</p>
+
+        <ul class="bot-features-list">
+          <li>
+            <lucide-icon name="check-circle" [size]="15" />
+            Menú interactivo con categorías y productos
+          </li>
+          <li>
+            <lucide-icon name="check-circle" [size]="15" />
+            Carrito de compras conversacional
+          </li>
+          <li>
+            <lucide-icon name="check-circle" [size]="15" />
+            Soporte para múltiples métodos de pago
+          </li>
+          <li>
+            <lucide-icon name="check-circle" [size]="15" />
+            Confirmaciones automáticas al cliente
+          </li>
+          <li>
+            <lucide-icon name="check-circle" [size]="15" />
+            Traspaso a operador humano con un comando
+          </li>
+        </ul>
+
+        <a routerLink="/features" class="btn btn-secondary btn-sm">
+          Ver todas las características
+          <lucide-icon name="arrow-right" [size]="14" />
+        </a>
+      </div>
+
+      <!-- WhatsApp Phone Mockup -->
+      <div class="wa-wrap">
+        <div class="wa-phone">
+          <div class="wa-topbar">
+            <div class="wa-avatar">🤖</div>
+            <div class="wa-info">
+              <div class="wa-biz">Pizzería Don Carlo</div>
+              <div class="wa-status">● en línea</div>
+            </div>
+          </div>
+          <div class="wa-chat">
+            <div class="wa-msg wa-received">
+              <p>👋 ¡Hola! Bienvenido a <strong>Pizzería Don Carlo</strong>.</p>
+              <p>¿Qué deseas hoy?<br>1️⃣ 🍕 Pizzas&nbsp;&nbsp;2️⃣ 🥤 Bebidas</p>
+              <span class="wa-ts">10:32</span>
+            </div>
+            <div class="wa-msg wa-sent">
+              1
+              <span class="wa-ts">10:33</span>
+            </div>
+            <div class="wa-msg wa-received">
+              <p>🍕 Nuestras pizzas:</p>
+              <p>• Margherita — $15<br>• Pepperoni — $18<br>• Hawaiana — $16</p>
+              <span class="wa-ts">10:33</span>
+            </div>
+            <div class="wa-msg wa-sent">
+              2 Pepperoni
+              <span class="wa-ts">10:33</span>
+            </div>
+            <div class="wa-msg wa-received">
+              <p>✅ ¡Pizza Pepperoni agregada!</p>
+              <p>🛒 Carrito: 1 pizza — $18</p>
+              <p>Escribe <strong>confirmar</strong> para finalizar.</p>
+              <span class="wa-ts">10:34</span>
+            </div>
+          </div>
+          <div class="wa-input-bar">
+            <span>Escribe un mensaje...</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ METRICS ═══════════════ -->
+<section class="metrics">
+  <div class="container">
+    <div class="metrics-grid">
+      <div class="metric">
+        <span class="metric-num">300<span class="metric-sup">+</span></span>
+        <span class="metric-label">Negocios activos</span>
+        <span class="metric-sub">en 12 países de Latam</span>
+      </div>
+      <div class="metric">
+        <span class="metric-num">2M<span class="metric-sup">+</span></span>
+        <span class="metric-label">Pedidos procesados</span>
+        <span class="metric-sub">sin intervención humana</span>
+      </div>
+      <div class="metric">
+        <span class="metric-num">24/7</span>
+        <span class="metric-label">Disponibilidad</span>
+        <span class="metric-sub">sin días de descanso</span>
+      </div>
+      <div class="metric">
+        <span class="metric-num">3<span class="metric-sup">x</span></span>
+        <span class="metric-label">Mayor conversión</span>
+        <span class="metric-sub">vs. formularios web</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PRICING PREVIEW ═══════════════ -->
+<section class="pricing-preview">
+  <div class="container">
+    <div class="section-head">
+      <span class="label">Precios</span>
+      <h2>Un plan para cada<br>etapa de tu negocio</h2>
+      <p>Empieza gratis y escala cuando lo necesites.</p>
+    </div>
+
+    <div class="plans-grid">
+      @for (plan of plans; track plan.name) {
+        <div class="plan-card" [class.plan-featured]="plan.featured">
+          @if (plan.featured) {
+            <div class="plan-badge">Más popular</div>
+          }
+          <div class="plan-header">
+            <span class="plan-name">{{ plan.name }}</span>
+            <div class="plan-price">
+              <span class="price-symbol">$</span>
+              <span class="price-num">{{ plan.price }}</span>
+              <span class="price-period">/mes</span>
+            </div>
+            <p class="plan-desc">{{ plan.desc }}</p>
+          </div>
+          <ul class="plan-features">
+            @for (feat of plan.features; track feat) {
+              <li>
+                <lucide-icon name="check" [size]="13" />
+                {{ feat }}
+              </li>
+            }
+          </ul>
+          <a [routerLink]="plan.ctaRoute" class="btn btn-sm plan-cta" [class.btn-primary]="plan.featured" [class.btn-outline]="!plan.featured">
+            {{ plan.cta }}
+          </a>
+        </div>
+      }
+    </div>
+
+    <div class="pricing-footnote">
+      <a routerLink="/pricing">
+        Ver comparación completa de planes
+        <lucide-icon name="arrow-right" [size]="14" />
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ TESTIMONIALS ═══════════════ -->
+<section class="testimonials">
+  <div class="container">
+    <div class="section-head">
+      <span class="label">Testimonios</span>
+      <h2>Lo que dicen los negocios<br>que ya lo usan</h2>
+    </div>
+
+    <div class="testimonials-grid">
+      @for (t of testimonials; track t.name) {
+        <div class="t-card">
+          <div class="t-stars">
+            @for (s of stars; track s) {
+              <lucide-icon name="star" [size]="13" />
+            }
+          </div>
+          <p class="t-quote">"{{ t.quote }}"</p>
+          <div class="t-author">
+            <div class="t-avatar">{{ t.initial }}</div>
+            <div class="t-info">
+              <span class="t-name">{{ t.name }}</span>
+              <span class="t-role">{{ t.role }}</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FINAL CTA ═══════════════ -->
+<section class="final-cta">
+  <div class="container">
+    <div class="cta-card">
+      <div class="cta-glow"></div>
+      <h2>Tu negocio listo para<br>recibir pedidos esta semana</h2>
+      <p>Configura tu bot en 30 minutos. 7 días gratis, sin tarjeta de crédito. Sin compromisos.</p>
+      <div class="cta-actions">
+        <a routerLink="/register" class="btn btn-primary btn-lg">
+          Comenzar gratis
+          <lucide-icon name="arrow-right" [size]="16" />
+        </a>
+        <a routerLink="/contact" class="btn btn-ghost btn-lg">Hablar con ventas</a>
+      </div>
+    </div>
+  </div>
+</section>
