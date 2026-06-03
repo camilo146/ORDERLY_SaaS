@@ -121,7 +121,7 @@ public class SecurityConfig {
                                 "connect-src 'self' ws: wss:; " +
                                 "frame-ancestors 'none'; " +
                                 "base-uri 'self'; " +
-                                "form-action 'self';"))))
+                                "form-action 'self';")))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(tenantContextFilter, JwtAuthenticationFilter.class);
 
