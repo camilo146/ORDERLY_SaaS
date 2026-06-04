@@ -33,7 +33,7 @@ fix_register_html.py
 insert_mascot_step.py
 patch.js
 patch.py
-db/
+/db/
 
 # ── OS ────────────────────────────────────────────────────────────────────────
 .DS_Store
