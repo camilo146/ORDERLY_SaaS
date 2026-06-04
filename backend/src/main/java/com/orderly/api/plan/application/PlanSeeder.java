@@ -50,7 +50,7 @@ public class PlanSeeder {
                                boolean multiLocation, boolean customBranding, boolean prioritySupport) {
         String sql = """
                 INSERT INTO plans (
-                    code, name,
+                    id, code, name,
                     monthly_price, annual_price,
                     monthly_price_usd, annual_price_usd,
                     max_orders_per_month, max_active_orders, max_dashboard_users,
@@ -58,7 +58,7 @@ public class PlanSeeder {
                     overage_rate_cop, overage_rate_usd, overage_block_size,
                     multi_location, custom_branding, priority_support
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (gen_random_uuid(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT (code) DO NOTHING
                 """;
 
