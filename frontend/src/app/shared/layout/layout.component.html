@@ -34,7 +34,7 @@
           <span>Super Admin</span>
         </a>
       }
-      @if (auth.isAdmin) {
+      @if (auth.isAdmin && !auth.isSuperAdmin) {
         <a class="nav-item" routerLink="/dashboard" routerLinkActive="active">
           <lucide-icon name="layout-dashboard" [size]="16"></lucide-icon>
           <span>Pedidos</span>
@@ -50,13 +50,13 @@
           <span>Operaciones</span>
         </a>
       }
-      @if (auth.isOperator && auth.isAdmin) {
+      @if (auth.isOperator && auth.isAdmin && !auth.isSuperAdmin) {
         <a class="nav-item" routerLink="/operator" routerLinkActive="active">
           <lucide-icon name="headphones" [size]="16"></lucide-icon>
           <span>Operaciones</span>
         </a>
       }
-      @if (auth.isAdmin) {
+      @if (auth.isAdmin && !auth.isSuperAdmin) {
         <a class="nav-item" routerLink="/onboarding" routerLinkActive="active">
           <lucide-icon name="map" [size]="16"></lucide-icon>
           <span>Configuración inicial</span>
