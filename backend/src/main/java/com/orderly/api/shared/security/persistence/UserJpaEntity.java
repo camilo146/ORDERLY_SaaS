@@ -34,7 +34,7 @@ public class UserJpaEntity {
     private OffsetDateTime forcedLogoutAt;
 
     @Column(name = "email_verified")
-    private boolean emailVerified = false;
+    private Boolean emailVerified = false;
 
     @Column(name = "email_verification_token", unique = true)
     private String emailVerificationToken;
@@ -104,7 +104,7 @@ public class UserJpaEntity {
 
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
 
-    public boolean isEmailVerified() { return emailVerified; }
+    public boolean isEmailVerified() { return Boolean.TRUE.equals(emailVerified); }
     public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
 
     public String getEmailVerificationToken() { return emailVerificationToken; }
