@@ -20,10 +20,12 @@ export class BillingComponent implements OnInit {
   private readonly billingSvc = inject(BillingService);
   private readonly route      = inject(ActivatedRoute);
 
-  loading       = signal(true);
-  actionLoading = signal(false);
-  error         = signal<string | null>(null);
-  successMsg    = signal<string | null>(null);
+  readonly FREE_ORDER_LIMIT = 20;
+
+  loading         = signal(true);
+  actionLoading   = signal(false);
+  error           = signal<string | null>(null);
+  showBudgetPanel = signal(false);
 
   subscription = signal<SubscriptionStatus | null>(null);
   plans        = signal<PlanCatalogItem[]>([]);
@@ -32,38 +34,92 @@ export class BillingComponent implements OnInit {
   showSuccessBanner = signal(false);
   showCancelBanner  = signal(false);
 
+  // ── Current plan ──────────────────────────────────────────────────────────
+
   currentPlan = computed(() => {
     const sub = this.subscription();
     if (!sub) return null;
     return this.plans().find(p => p.code === sub.planCode) ?? null;
   });
 
+  // ── Plan usage ────────────────────────────────────────────────────────────
+
   usagePercent = computed(() => {
-    const usage = this.subscription()?.currentUsage;
-    if (!usage || !usage.planOrderLimit) return 0;
-    return Math.min(100, Math.round((usage.ordersCount / usage.planOrderLimit) * 100));
+    const u = this.subscription()?.currentUsage;
+    if (!u?.planOrderLimit) return 0;
+    return Math.min(100, Math.round((u.ordersCount / u.planOrderLimit) * 100));
   });
 
-  ordersRemaining = computed(() => this.subscription()?.currentUsage?.ordersRemaining ?? 0);
+  ordersRemaining = computed(() =>
+    this.subscription()?.currentUsage?.ordersRemaining ?? 0
+  );
 
-  otherPlans = computed(() => {
-    const code = this.subscription()?.planCode;
-    return this.plans().filter(p => p.code !== code);
+  // ── Free orders (20 gratis incluidos) ────────────────────────────────────
+
+  freeOrdersUsed = computed(() =>
+    Math.min(this.subscription()?.currentUsage?.ordersCount ?? 0, this.FREE_ORDER_LIMIT)
+  );
+
+  freeOrdersRemaining = computed(() =>
+    Math.max(0, this.FREE_ORDER_LIMIT - this.freeOrdersUsed())
+  );
+
+  freePercent = computed(() =>
+    Math.min(100, Math.round((this.freeOrdersUsed() / this.FREE_ORDER_LIMIT) * 100))
+  );
+
+  isFreeDepleted = computed(() => this.freeOrdersUsed() >= this.FREE_ORDER_LIMIT);
+
+  // Show free credits when on trial OR when total orders are still within free limit
+  showFreeCredits = computed(() => {
+    const sub = this.subscription();
+    if (!sub) return true;
+    const onTrial = sub.status === 'TRIAL' || sub.status === 'TRIALING';
+    const withinFreeLimit = (sub.currentUsage?.ordersCount ?? 0) <= this.FREE_ORDER_LIMIT;
+    return onTrial || withinFreeLimit;
   });
 
-  isTrialing = computed(() => this.subscription()?.status === 'TRIAL');
-  isPastDue  = computed(() => this.subscription()?.status === 'PAST_DUE');
-  isCanceled = computed(() => this.subscription()?.status === 'CANCELED' || this.subscription()?.status === 'SUSPENDED');
+  hasPlanLimit = computed(() =>
+    (this.subscription()?.currentUsage?.planOrderLimit ?? 0) > 0
+  );
+
+  hasOverage = computed(() =>
+    (this.subscription()?.currentUsage?.overageCount ?? 0) > 0
+  );
+
+  // ── Status flags ──────────────────────────────────────────────────────────
+
+  isTrialing = computed(() => {
+    const s = this.subscription()?.status;
+    return s === 'TRIAL' || s === 'TRIALING';
+  });
+
+  isPastDue = computed(() => this.subscription()?.status === 'PAST_DUE');
+
+  isCanceled = computed(() => {
+    const s = this.subscription()?.status;
+    return s === 'CANCELED' || s === 'SUSPENDED';
+  });
+
+  // ── Plans ─────────────────────────────────────────────────────────────────
 
   readonly planOrder: Record<string, number> = { starter: 1, growth: 2, business: 3 };
 
+  otherPlans = computed(() =>
+    this.plans().filter(p => p.code !== this.subscription()?.planCode)
+  );
+
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
+
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-      if (params['success'] === 'true')    this.showSuccessBanner.set(true);
-      if (params['cancelled'] === 'true')  this.showCancelBanner.set(true);
+      if (params['success'] === 'true')   this.showSuccessBanner.set(true);
+      if (params['cancelled'] === 'true') this.showCancelBanner.set(true);
     });
     this.loadData();
   }
+
+  // ── Data ──────────────────────────────────────────────────────────────────
 
   async loadData(): Promise<void> {
     this.loading.set(true);
@@ -79,13 +135,17 @@ export class BillingComponent implements OnInit {
         this.billingSvc.getPlans()
       ]);
       this.subscription.set(sub);
-      this.plans.set(plans.sort((a, b) => (this.planOrder[a.code] ?? 9) - (this.planOrder[b.code] ?? 9)));
+      this.plans.set(plans.sort((a, b) =>
+        (this.planOrder[a.code] ?? 9) - (this.planOrder[b.code] ?? 9)
+      ));
     } catch (e: any) {
       this.error.set(e?.error?.message ?? 'Error al cargar suscripción.');
     } finally {
       this.loading.set(false);
     }
   }
+
+  // ── Actions ───────────────────────────────────────────────────────────────
 
   async manageBilling(): Promise<void> {
     this.actionLoading.set(true);
@@ -115,6 +175,12 @@ export class BillingComponent implements OnInit {
     this.cycle.update(c => c === 'monthly' ? 'annual' : 'monthly');
   }
 
+  toggleBudgetPanel(): void {
+    this.showBudgetPanel.update(v => !v);
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
   getPrice(plan: PlanCatalogItem): number {
     return this.cycle() === 'monthly' ? plan.monthlyPriceUsd : plan.annualPriceUsd / 12;
   }
@@ -126,8 +192,8 @@ export class BillingComponent implements OnInit {
 
   statusLabel(status: string): string {
     const map: Record<string, string> = {
-      TRIAL: 'Trial', ACTIVE: 'Activo', PAST_DUE: 'Pago pendiente',
-      SUSPENDED: 'Suspendido', CANCELED: 'Cancelado'
+      TRIAL: 'Trial', TRIALING: 'Trial', ACTIVE: 'Activo',
+      PAST_DUE: 'Pago pendiente', SUSPENDED: 'Suspendido', CANCELED: 'Cancelado'
     };
     return map[status] ?? status;
   }
@@ -141,7 +207,7 @@ export class BillingComponent implements OnInit {
 
   formatDate(d: string | null | undefined): string {
     if (!d) return '—';
-    return new Intl.DateTimeFormat('es-CO', { dateStyle: 'long' }).format(new Date(d));
+    return new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium' }).format(new Date(d));
   }
 
   dismissError():   void { this.error.set(null); }

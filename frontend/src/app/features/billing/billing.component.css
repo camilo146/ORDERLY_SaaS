@@ -431,3 +431,406 @@
 
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { animation: spin 1s linear infinite; }
+
+/* ── Usage Card ──────────────────────────────────────────────────────────── */
+
+.usage-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.usage-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.usage-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.usage-title-icon { color: var(--color-primary); }
+
+/* ── Credits hero ────────────────────────────────────────────────────────── */
+
+.credits-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px 24px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.credits-hero-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.credits-num {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.credits-num-depleted { color: var(--color-danger); }
+.credits-num-danger   { color: var(--color-danger); }
+
+.credits-sep {
+  font-size: 1.6rem;
+  font-weight: 300;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.credits-denom {
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  line-height: 1;
+}
+
+.credits-hero-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.credits-label-icon { color: var(--color-primary); }
+
+.credits-alert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--color-danger);
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 4px;
+  width: fit-content;
+}
+
+/* ── Meter blocks ────────────────────────────────────────────────────────── */
+
+.meter-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius);
+}
+
+.meter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.meter-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.meter-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.meter-label-icon { color: var(--color-primary); }
+
+.meter-sublabel {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.meter-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.meter-used {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.meter-sep {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.meter-total {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.meter-track {
+  height: 8px;
+  background: var(--color-surface-3);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.meter-track-lg { height: 10px; }
+
+.meter-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 99px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.meter-fill.meter-warning { background: var(--color-warning); }
+.meter-fill.meter-danger  { background: var(--color-danger); }
+
+.meter-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.meter-depleted-msg {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+/* ── Overage block ───────────────────────────────────────────────────────── */
+
+.overage-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(245, 158, 11, 0.07);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius);
+}
+
+.overage-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.overage-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  background: rgba(245, 158, 11, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-warning);
+  flex-shrink: 0;
+}
+
+.overage-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.overage-subtitle {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+.overage-charge {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-warning);
+  white-space: nowrap;
+}
+
+.overage-currency {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+/* ── Budget Panel ────────────────────────────────────────────────────────── */
+
+.budget-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.budget-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.budget-panel-sub {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  margin: 4px 0 0;
+}
+
+.budget-cycle-toggle {
+  display: flex;
+  gap: 2px;
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.budget-plans {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.budget-plan-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  background: var(--color-surface-2);
+  transition: background var(--transition-fast);
+}
+
+.budget-plan-row + .budget-plan-row {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.budget-plan-row:hover { background: var(--color-surface-3); }
+
+.budget-plan-active {
+  background: rgba(255, 107, 53, 0.05) !important;
+  border-left: 3px solid var(--color-primary);
+}
+
+.budget-plan-left { flex: 1; min-width: 0; }
+
+.budget-plan-name {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.budget-plan-capacity {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.capacity-icon { color: var(--color-primary); }
+
+.overage-rate-tag {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-warning);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+}
+
+.budget-plan-mid {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.budget-price-num {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.budget-price-per {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
+.budget-price-annual {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  margin-left: 2px;
+}
+
+.budget-plan-action { flex-shrink: 0; }
+
+.budget-current-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  padding: 6px 12px;
+  background: rgba(255, 107, 53, 0.1);
+  border-radius: var(--radius-full);
+}
+
+.budget-overage-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  padding: 12px 14px;
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border-subtle);
+  line-height: 1.5;
+}
+
+.budget-overage-note lucide-icon { flex-shrink: 0; margin-top: 1px; }
+
+/* ── Utility ─────────────────────────────────────────────────────────────── */
+
+.text-warning { color: var(--color-warning) !important; }
+.text-danger  { color: var(--color-danger) !important; }

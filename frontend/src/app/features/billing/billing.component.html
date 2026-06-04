@@ -1,52 +1,50 @@
 <div class="billing-page">
 
-  <!-- Success / Cancel banners -->
+  <!-- ── Banners ──────────────────────────────────────────────────────────── -->
   @if (showSuccessBanner()) {
     <div class="banner banner-success">
-      <lucide-icon name="CheckCircle" [size]="18"></lucide-icon>
+      <lucide-icon name="check-circle" [size]="18"></lucide-icon>
       <span>¡Suscripción activada! Bienvenido a Orderly.</span>
       <button class="banner-close" (click)="dismissSuccess()">
-        <lucide-icon name="X" [size]="14"></lucide-icon>
+        <lucide-icon name="x" [size]="14"></lucide-icon>
       </button>
     </div>
   }
   @if (showCancelBanner()) {
     <div class="banner banner-warn">
-      <lucide-icon name="AlertTriangle" [size]="18"></lucide-icon>
+      <lucide-icon name="alert-triangle" [size]="18"></lucide-icon>
       <span>Checkout cancelado. Tu plan actual no cambió.</span>
       <button class="banner-close" (click)="dismissSuccess()">
-        <lucide-icon name="X" [size]="14"></lucide-icon>
+        <lucide-icon name="x" [size]="14"></lucide-icon>
       </button>
     </div>
   }
-
-  <!-- Error toast -->
   @if (error()) {
     <div class="banner banner-error">
-      <lucide-icon name="AlertCircle" [size]="18"></lucide-icon>
+      <lucide-icon name="alert-circle" [size]="18"></lucide-icon>
       <span>{{ error() }}</span>
       <button class="banner-close" (click)="dismissError()">
-        <lucide-icon name="X" [size]="14"></lucide-icon>
+        <lucide-icon name="x" [size]="14"></lucide-icon>
       </button>
     </div>
   }
 
-  <!-- Header -->
+  <!-- ── Header ────────────────────────────────────────────────────────────── -->
   <div class="page-header">
     <div>
       <h1 class="page-title">Facturación</h1>
-      <p class="page-subtitle">Gestiona tu plan, métodos de pago y facturas.</p>
+      <p class="page-subtitle">Gestiona tu plan, uso y pedidos disponibles.</p>
     </div>
   </div>
 
   @if (loading()) {
     <div class="loading-state">
-      <lucide-icon name="Loader" [size]="28" class="spin"></lucide-icon>
+      <lucide-icon name="loader" [size]="28" class="spin"></lucide-icon>
       <span>Cargando suscripción…</span>
     </div>
   } @else if (subscription()) {
 
-    <!-- Current Plan Card -->
+    <!-- ── Current Plan Card ─────────────────────────────────────────────── -->
     <section class="current-plan-card">
       <div class="plan-card-header">
         <div class="plan-info">
@@ -67,56 +65,255 @@
             }
           </p>
         </div>
-
         <div class="plan-actions">
           <button class="btn btn-secondary" (click)="manageBilling()" [disabled]="actionLoading()">
-            <lucide-icon name="ExternalLink" [size]="15"></lucide-icon>
+            <lucide-icon name="external-link" [size]="15"></lucide-icon>
             Gestionar facturación
           </button>
         </div>
       </div>
 
-      <!-- Past due alert -->
       @if (isPastDue()) {
         <div class="alert alert-error">
-          <lucide-icon name="AlertTriangle" [size]="16"></lucide-icon>
-          <span>Tu último pago falló. Actualiza tu método de pago en el portal de facturación para evitar la suspensión del servicio.</span>
-        </div>
-      }
-
-      <!-- Usage meter -->
-      @if (subscription()!.currentUsage) {
-        <div class="usage-section">
-          <div class="usage-header">
-            <span class="usage-label">Pedidos este mes</span>
-            <span class="usage-count">
-              {{ subscription()!.currentUsage!.ordersCount }}
-              /
-              @if (subscription()!.currentUsage!.planOrderLimit === 0) {
-                Ilimitados
-              } @else {
-                {{ subscription()!.currentUsage!.planOrderLimit | number }}
-              }
-            </span>
-          </div>
-          @if (subscription()!.currentUsage!.planOrderLimit > 0) {
-            <div class="usage-bar-track">
-              <div class="usage-bar-fill"
-                   [class.usage-warning]="usagePercent() >= 80"
-                   [class.usage-danger]="usagePercent() >= 95"
-                   [style.width.%]="usagePercent()">
-              </div>
-            </div>
-            <div class="usage-footer">
-              <span class="usage-remaining">{{ ordersRemaining() }} pedidos restantes</span>
-              <span class="usage-pct">{{ usagePercent() }}%</span>
-            </div>
-          }
+          <lucide-icon name="alert-triangle" [size]="16"></lucide-icon>
+          <span>Tu último pago falló. Actualiza tu método de pago para evitar la suspensión.</span>
         </div>
       }
     </section>
 
-    <!-- Upgrade Plans -->
+    <!-- ── Uso & Créditos ────────────────────────────────────────────────── -->
+    <section class="usage-card">
+
+      <!-- Header -->
+      <div class="usage-card-header">
+        <div class="usage-card-title">
+          <lucide-icon name="gauge" [size]="16" class="usage-title-icon"></lucide-icon>
+          <h2 class="section-title">Uso</h2>
+        </div>
+        <button class="btn btn-secondary btn-sm" (click)="toggleBudgetPanel()">
+          <lucide-icon name="sliders-horizontal" [size]="14"></lucide-icon>
+          Ajustar presupuesto
+          <lucide-icon [name]="showBudgetPanel() ? 'chevron-up' : 'chevron-down'" [size]="13"></lucide-icon>
+        </button>
+      </div>
+
+      <!-- Credits Remaining — hero display -->
+      <div class="credits-hero">
+        @if (showFreeCredits() && !hasPlanLimit()) {
+          <!-- Free-tier hero -->
+          <div class="credits-hero-numbers">
+            <span class="credits-num" [class.credits-num-depleted]="isFreeDepleted()">
+              {{ freeOrdersRemaining() }}
+            </span>
+            <span class="credits-sep">/</span>
+            <span class="credits-denom">{{ FREE_ORDER_LIMIT }}</span>
+          </div>
+          <div class="credits-hero-label">
+            <lucide-icon name="sparkles" [size]="13" class="credits-label-icon"></lucide-icon>
+            Créditos gratuitos restantes
+          </div>
+        } @else if (hasPlanLimit()) {
+          <!-- Plan usage hero -->
+          <div class="credits-hero-numbers">
+            <span class="credits-num" [class.credits-num-danger]="usagePercent() >= 95">
+              {{ ordersRemaining() | number }}
+            </span>
+            <span class="credits-sep">/</span>
+            <span class="credits-denom">{{ subscription()!.currentUsage!.planOrderLimit | number }}</span>
+          </div>
+          <div class="credits-hero-label">Pedidos disponibles este mes</div>
+        }
+
+        @if (isFreeDepleted() && !hasPlanLimit()) {
+          <div class="credits-alert-badge">
+            <lucide-icon name="alert-triangle" [size]="12"></lucide-icon>
+            Créditos agotados — activa un plan para continuar
+          </div>
+        }
+      </div>
+
+      <!-- ── Meter: pedidos gratuitos ──────────────────────────────────── -->
+      @if (showFreeCredits()) {
+        <div class="meter-block">
+          <div class="meter-header">
+            <div class="meter-meta">
+              <span class="meter-label">
+                <lucide-icon name="sparkles" [size]="12" class="meter-label-icon"></lucide-icon>
+                Pedidos gratuitos
+              </span>
+              <span class="meter-sublabel">{{ FREE_ORDER_LIMIT }} pedidos incluidos en el trial</span>
+            </div>
+            <div class="meter-counter">
+              <span class="meter-used">{{ freeOrdersUsed() }}</span>
+              <span class="meter-sep">/</span>
+              <span class="meter-total">{{ FREE_ORDER_LIMIT }}</span>
+            </div>
+          </div>
+          <div class="meter-track">
+            <div class="meter-fill"
+                 [class.meter-warning]="freePercent() >= 75"
+                 [class.meter-danger]="freePercent() >= 90"
+                 [style.width.%]="freePercent()">
+            </div>
+          </div>
+          <div class="meter-footer">
+            @if (isFreeDepleted()) {
+              <span class="meter-depleted-msg">
+                <lucide-icon name="alert-triangle" [size]="11"></lucide-icon>
+                Activa un plan de pago para continuar
+              </span>
+            } @else {
+              <span>{{ freeOrdersRemaining() }} pedido{{ freeOrdersRemaining() !== 1 ? 's' : '' }} gratuito{{ freeOrdersRemaining() !== 1 ? 's' : '' }} restante{{ freeOrdersRemaining() !== 1 ? 's' : '' }}</span>
+            }
+            <span>{{ freePercent() }}%</span>
+          </div>
+        </div>
+      }
+
+      <!-- ── Meter: uso mensual facturado ─────────────────────────────── -->
+      @if (hasPlanLimit()) {
+        <div class="meter-block">
+          <div class="meter-header">
+            <div class="meter-meta">
+              <span class="meter-label">
+                <lucide-icon name="bar-chart3" [size]="12" class="meter-label-icon"></lucide-icon>
+                Uso mensual facturado
+              </span>
+              @if (subscription()!.currentUsage!.periodEnd) {
+                <span class="meter-sublabel">
+                  Reinicia {{ formatDate(subscription()!.currentUsage!.periodEnd) }}
+                </span>
+              }
+            </div>
+            <div class="meter-counter">
+              <span class="meter-used">{{ subscription()!.currentUsage!.ordersCount | number }}</span>
+              <span class="meter-sep">/</span>
+              <span class="meter-total">{{ subscription()!.currentUsage!.planOrderLimit | number }}</span>
+            </div>
+          </div>
+          <div class="meter-track meter-track-lg">
+            <div class="meter-fill"
+                 [class.meter-warning]="usagePercent() >= 80"
+                 [class.meter-danger]="usagePercent() >= 95"
+                 [style.width.%]="usagePercent()">
+            </div>
+          </div>
+          <div class="meter-footer">
+            <span>{{ ordersRemaining() | number }} pedidos disponibles</span>
+            <span [class.text-warning]="usagePercent() >= 80"
+                  [class.text-danger]="usagePercent() >= 95">
+              {{ usagePercent() }}%
+            </span>
+          </div>
+        </div>
+      }
+
+      <!-- ── Overage ───────────────────────────────────────────────────── -->
+      @if (hasOverage()) {
+        <div class="overage-block">
+          <div class="overage-left">
+            <div class="overage-icon-wrap">
+              <lucide-icon name="zap" [size]="14"></lucide-icon>
+            </div>
+            <div>
+              <div class="overage-title">Pedidos extra (overage)</div>
+              <div class="overage-subtitle">
+                {{ subscription()!.currentUsage!.overageCount | number }} pedidos fuera del plan
+                · {{ subscription()!.currentUsage!.overageBlocks }} bloque{{ subscription()!.currentUsage!.overageBlocks !== 1 ? 's' : '' }}
+              </div>
+            </div>
+          </div>
+          <div class="overage-charge">
+            +${{ subscription()!.currentUsage!.overageChargeUsd | number:'1.2-2' }} <span class="overage-currency">USD</span>
+          </div>
+        </div>
+      }
+
+    </section>
+
+    <!-- ── Ajustar presupuesto (collapsible) ───────────────────────────── -->
+    @if (showBudgetPanel()) {
+      <section class="budget-panel">
+
+        <div class="budget-panel-head">
+          <div>
+            <h2 class="section-title">Ajustar presupuesto</h2>
+            <p class="budget-panel-sub">Cambia tu plan para aumentar o reducir tu capacidad de pedidos mensuales.</p>
+          </div>
+          <div class="budget-cycle-toggle">
+            <button class="toggle-btn" [class.active]="cycle() === 'monthly'" (click)="toggleCycle()">
+              Mensual
+            </button>
+            <button class="toggle-btn" [class.active]="cycle() === 'annual'" (click)="toggleCycle()">
+              Anual <span class="savings-badge">-20%</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="budget-plans">
+          @for (plan of plans(); track plan.code) {
+            <div class="budget-plan-row" [class.budget-plan-active]="plan.code === subscription()?.planCode">
+
+              <div class="budget-plan-left">
+                <div class="budget-plan-name">{{ planLabel(plan.code) }}</div>
+                <div class="budget-plan-capacity">
+                  @if (plan.monthlyOrderLimit === 0) {
+                    <lucide-icon name="zap" [size]="12" class="capacity-icon"></lucide-icon>
+                    Ilimitados
+                  } @else {
+                    <strong>{{ plan.monthlyOrderLimit | number }}</strong> pedidos/mes
+                  }
+                  @if (plan.overageRateCop > 0) {
+                    <span class="overage-rate-tag">+ overage disponible</span>
+                  }
+                </div>
+              </div>
+
+              <div class="budget-plan-mid">
+                <span class="budget-price-num">${{ getPrice(plan) | number:'1.0-0' }}</span>
+                <span class="budget-price-per">/mes USD</span>
+                @if (cycle() === 'annual') {
+                  <span class="budget-price-annual">(${{ plan.annualPriceUsd | number:'1.0-0' }}/año)</span>
+                }
+              </div>
+
+              <div class="budget-plan-action">
+                @if (plan.code === subscription()?.planCode) {
+                  <span class="budget-current-tag">
+                    <lucide-icon name="check" [size]="12"></lucide-icon>
+                    Plan actual
+                  </span>
+                } @else {
+                  <button class="btn btn-sm"
+                          [class.btn-primary]="isUpgrade(plan.code)"
+                          [class.btn-secondary]="!isUpgrade(plan.code)"
+                          (click)="checkout(plan.code)"
+                          [disabled]="actionLoading()">
+                    @if (actionLoading()) {
+                      <lucide-icon name="loader" [size]="13" class="spin"></lucide-icon>
+                    } @else if (isUpgrade(plan.code)) {
+                      <lucide-icon name="trending-up" [size]="13"></lucide-icon>
+                      Mejorar
+                    } @else {
+                      Cambiar
+                    }
+                  </button>
+                }
+              </div>
+
+            </div>
+          }
+        </div>
+
+        <div class="budget-overage-note">
+          <lucide-icon name="info" [size]="13"></lucide-icon>
+          <span>Los pedidos que superen el límite del plan se facturan automáticamente como overage según la tarifa del plan seleccionado.</span>
+        </div>
+
+      </section>
+    }
+
+    <!-- ── Planes disponibles ────────────────────────────────────────────── -->
     <section class="upgrade-section">
       <div class="upgrade-header">
         <h2 class="section-title">Planes disponibles</h2>
@@ -133,10 +330,12 @@
 
       <div class="plans-grid">
         @for (plan of plans(); track plan.code) {
-          <div class="plan-card" [class.plan-card-current]="plan.code === subscription()!.planCode" [class.plan-card-featured]="plan.code === 'growth'">
+          <div class="plan-card"
+               [class.plan-card-current]="plan.code === subscription()!.planCode"
+               [class.plan-card-featured]="plan.code === 'growth'">
             @if (plan.code === 'growth') {
               <div class="popular-badge">
-                <lucide-icon name="Zap" [size]="12"></lucide-icon>
+                <lucide-icon name="zap" [size]="12"></lucide-icon>
                 Popular
               </div>
             }
@@ -157,7 +356,7 @@
 
               <ul class="feature-list">
                 <li class="feature-item">
-                  <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                  <lucide-icon name="check-circle" [size]="15" class="feature-check"></lucide-icon>
                   @if (plan.monthlyOrderLimit === 0) {
                     Pedidos ilimitados/mes
                   } @else {
@@ -165,7 +364,7 @@
                   }
                 </li>
                 <li class="feature-item">
-                  <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                  <lucide-icon name="check-circle" [size]="15" class="feature-check"></lucide-icon>
                   @if (!plan.userLimit || plan.userLimit === 0) {
                     Operadores ilimitados
                   } @else {
@@ -173,24 +372,24 @@
                   }
                 </li>
                 <li class="feature-item">
-                  <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                  <lucide-icon name="check-circle" [size]="15" class="feature-check"></lucide-icon>
                   Catálogo ilimitado
                 </li>
                 @if (plan.analyticsEnabled) {
                   <li class="feature-item">
-                    <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                    <lucide-icon name="check-circle" [size]="15" class="feature-check"></lucide-icon>
                     Analytics avanzado
                   </li>
                 }
                 @if (plan.multiLocation) {
                   <li class="feature-item">
-                    <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                    <lucide-icon name="check-circle" [size]="15" class="feature-check"></lucide-icon>
                     Multi-negocio
                   </li>
                 }
                 @if (plan.prioritySupport) {
                   <li class="feature-item">
-                    <lucide-icon name="CheckCircle" [size]="15" class="feature-check"></lucide-icon>
+                    <lucide-icon name="check-circle" [size]="15" class="feature-check"></lucide-icon>
                     Soporte prioritario
                   </li>
                 }
@@ -203,10 +402,10 @@
                         (click)="checkout(plan.code)"
                         [disabled]="actionLoading()">
                   @if (actionLoading()) {
-                    <lucide-icon name="Loader" [size]="14" class="spin"></lucide-icon>
+                    <lucide-icon name="loader" [size]="14" class="spin"></lucide-icon>
                     Procesando…
                   } @else if (isUpgrade(plan.code)) {
-                    <lucide-icon name="ArrowUpRight" [size]="14"></lucide-icon>
+                    <lucide-icon name="arrow-up-right" [size]="14"></lucide-icon>
                     Mejorar a {{ planLabel(plan.code) }}
                   } @else {
                     Cambiar a {{ planLabel(plan.code) }}
@@ -214,7 +413,7 @@
                 </button>
               } @else {
                 <div class="current-plan-cta">
-                  <lucide-icon name="Check" [size]="15"></lucide-icon>
+                  <lucide-icon name="check" [size]="15"></lucide-icon>
                   Plan actual
                 </div>
               }
@@ -225,9 +424,9 @@
     </section>
 
   } @else if (!loading()) {
-    <!-- No subscription state -->
+    <!-- ── Sin suscripción ───────────────────────────────────────────────── -->
     <div class="empty-state">
-      <lucide-icon name="CreditCard" [size]="40" class="empty-icon"></lucide-icon>
+      <lucide-icon name="credit-card" [size]="40" class="empty-icon"></lucide-icon>
       <h3>Sin suscripción activa</h3>
       <p>Elige un plan para comenzar a usar Orderly.</p>
       <a routerLink="/pricing" class="btn btn-primary">Ver planes</a>

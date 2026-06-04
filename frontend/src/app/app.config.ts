@@ -15,7 +15,8 @@ import {
   Truck, AlertCircle, Pencil, Trash2, Image, Info, XCircle,
   Menu, ChevronDown, ArrowUpRight, Mail, Phone, MapPin, Globe, CreditCard, Play,
   DollarSign, Ban, UserCheck, UserX, Send, Activity, Filter, Search,
-  Gift, ExternalLink, Crown, Database, Layers, ChevronUp, MoreHorizontal, Lock
+  Gift, ExternalLink, Crown, Database, Layers, ChevronUp, MoreHorizontal, Lock,
+  SlidersHorizontal, Gauge, Sparkles
 } from 'lucide-angular';
 
 export const appConfig: ApplicationConfig = {
@@ -36,7 +37,8 @@ export const appConfig: ApplicationConfig = {
         Truck, AlertCircle, Pencil, Trash2, Image, Info, XCircle,
         Menu, ChevronDown, ArrowUpRight, Mail, Phone, MapPin, Globe, CreditCard, Play,
         DollarSign, Ban, UserCheck, UserX, Send, Activity, Filter, Search,
-        Gift, ExternalLink, Crown, Database, Layers, ChevronUp, MoreHorizontal, Lock
+        Gift, ExternalLink, Crown, Database, Layers, ChevronUp, MoreHorizontal, Lock,
+        SlidersHorizontal, Gauge, Sparkles
       })
     }
   ]
