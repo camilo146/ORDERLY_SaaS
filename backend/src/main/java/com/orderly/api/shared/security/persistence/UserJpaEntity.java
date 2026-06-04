@@ -33,6 +33,30 @@ public class UserJpaEntity {
     @Column(name = "forced_logout_at")
     private OffsetDateTime forcedLogoutAt;
 
+    @Column(name = "email_verified")
+    private boolean emailVerified = false;
+
+    @Column(name = "email_verification_token", unique = true)
+    private String emailVerificationToken;
+
+    @Column(name = "email_verification_expires_at")
+    private OffsetDateTime emailVerificationExpiresAt;
+
+    @Column(name = "password_reset_token", unique = true)
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_expires_at")
+    private OffsetDateTime passwordResetExpiresAt;
+
+    @Column(name = "last_login_at")
+    private OffsetDateTime lastLoginAt;
+
+    @Column(name = "onboarding_email_sent_at")
+    private OffsetDateTime onboardingEmailSentAt;
+
+    @Column(name = "inactivity_email_sent_at")
+    private OffsetDateTime inactivityEmailSentAt;
+
     protected UserJpaEntity() {
     }
 
@@ -77,4 +101,30 @@ public class UserJpaEntity {
     public void setForcedLogoutAt(OffsetDateTime forcedLogoutAt) {
         this.forcedLogoutAt = forcedLogoutAt;
     }
+
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+
+    public boolean isEmailVerified() { return emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
+
+    public String getEmailVerificationToken() { return emailVerificationToken; }
+    public void setEmailVerificationToken(String emailVerificationToken) { this.emailVerificationToken = emailVerificationToken; }
+
+    public OffsetDateTime getEmailVerificationExpiresAt() { return emailVerificationExpiresAt; }
+    public void setEmailVerificationExpiresAt(OffsetDateTime emailVerificationExpiresAt) { this.emailVerificationExpiresAt = emailVerificationExpiresAt; }
+
+    public String getPasswordResetToken() { return passwordResetToken; }
+    public void setPasswordResetToken(String passwordResetToken) { this.passwordResetToken = passwordResetToken; }
+
+    public OffsetDateTime getPasswordResetExpiresAt() { return passwordResetExpiresAt; }
+    public void setPasswordResetExpiresAt(OffsetDateTime passwordResetExpiresAt) { this.passwordResetExpiresAt = passwordResetExpiresAt; }
+
+    public OffsetDateTime getLastLoginAt() { return lastLoginAt; }
+    public void setLastLoginAt(OffsetDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+
+    public OffsetDateTime getOnboardingEmailSentAt() { return onboardingEmailSentAt; }
+    public void setOnboardingEmailSentAt(OffsetDateTime onboardingEmailSentAt) { this.onboardingEmailSentAt = onboardingEmailSentAt; }
+
+    public OffsetDateTime getInactivityEmailSentAt() { return inactivityEmailSentAt; }
+    public void setInactivityEmailSentAt(OffsetDateTime inactivityEmailSentAt) { this.inactivityEmailSentAt = inactivityEmailSentAt; }
 }

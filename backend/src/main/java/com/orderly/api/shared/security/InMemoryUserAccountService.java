@@ -1,6 +1,7 @@
 package com.orderly.api.shared.security;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import org.slf4j.Logger;
@@ -84,9 +85,84 @@ public class InMemoryUserAccountService {
                 fullName.trim(),
                 passwordEncoder.encode(rawPassword),
                 role,
-                OffsetDateTime.now());
+                OffsetDateTime.now(ZoneOffset.UTC));
+        String verificationToken = UUID.randomUUID().toString();
+        entity.setEmailVerificationToken(verificationToken);
+        entity.setEmailVerificationExpiresAt(OffsetDateTime.now(ZoneOffset.UTC).plusHours(24));
         userRepository.save(entity);
         return toPrincipal(entity);
+    }
+
+    public String getVerificationToken(String email) {
+        UserJpaEntity entity = findEntity(email);
+        return entity.getEmailVerificationToken();
+    }
+
+    public void verifyEmail(String token) {
+        UserJpaEntity entity = userRepository.findByEmailVerificationToken(token)
+                .orElseThrow(() -> new DomainException("Token de verificación inválido o expirado."));
+        if (entity.getEmailVerificationExpiresAt() != null &&
+            entity.getEmailVerificationExpiresAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC))) {
+            throw new DomainException("El token de verificación ha expirado. Solicita uno nuevo.");
+        }
+        entity.setEmailVerified(true);
+        entity.setEmailVerificationToken(null);
+        entity.setEmailVerificationExpiresAt(null);
+        userRepository.save(entity);
+    }
+
+    public UserJpaEntity generateNewVerificationToken(String email) {
+        UserJpaEntity entity = findEntity(email);
+        if (entity.isEmailVerified()) {
+            throw new DomainException("El correo ya está verificado.");
+        }
+        String token = UUID.randomUUID().toString();
+        entity.setEmailVerificationToken(token);
+        entity.setEmailVerificationExpiresAt(OffsetDateTime.now(ZoneOffset.UTC).plusHours(24));
+        userRepository.save(entity);
+        return entity;
+    }
+
+    public UserJpaEntity createPasswordResetToken(String email) {
+        UserJpaEntity entity = findEntity(email);
+        String token = UUID.randomUUID().toString();
+        entity.setPasswordResetToken(token);
+        entity.setPasswordResetExpiresAt(OffsetDateTime.now(ZoneOffset.UTC).plusMinutes(30));
+        userRepository.save(entity);
+        return entity;
+    }
+
+    public void resetPassword(String token, String newRawPassword) {
+        UserJpaEntity entity = userRepository.findByPasswordResetToken(token)
+                .orElseThrow(() -> new DomainException("Token de recuperación inválido o expirado."));
+        if (entity.getPasswordResetExpiresAt() != null &&
+            entity.getPasswordResetExpiresAt().isBefore(OffsetDateTime.now(ZoneOffset.UTC))) {
+            throw new DomainException("El enlace de recuperación ha expirado. Solicita uno nuevo.");
+        }
+        entity.setPasswordHash(passwordEncoder.encode(newRawPassword));
+        entity.setPasswordResetToken(null);
+        entity.setPasswordResetExpiresAt(null);
+        entity.setForcedLogoutAt(OffsetDateTime.now(ZoneOffset.UTC));
+        userRepository.save(entity);
+    }
+
+    public UserJpaEntity changePassword(UUID userId, String currentRawPassword, String newRawPassword) {
+        UserJpaEntity entity = userRepository.findById(userId)
+                .orElseThrow(() -> new DomainException("Usuario no encontrado."));
+        if (!passwordEncoder.matches(currentRawPassword, entity.getPasswordHash())) {
+            throw new DomainException("La contraseña actual es incorrecta.");
+        }
+        entity.setPasswordHash(passwordEncoder.encode(newRawPassword));
+        entity.setForcedLogoutAt(OffsetDateTime.now(ZoneOffset.UTC));
+        userRepository.save(entity);
+        return entity;
+    }
+
+    public void recordLogin(String email) {
+        userRepository.findByEmail(normalize(email)).ifPresent(entity -> {
+            entity.setLastLoginAt(OffsetDateTime.now(ZoneOffset.UTC));
+            userRepository.save(entity);
+        });
     }
 
     public UserPrincipal loadById(UUID userId) {

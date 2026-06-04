@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recordatorio de renovación — Orderly</title>
+</head>
+<body style="margin:0;padding:0;background-color:#09090b;font-family:Arial,Helvetica,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#09090b;padding:40px 20px;">
+  <tr>
+    <td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+        <!-- Logo -->
+        <tr>
+          <td align="center" style="padding-bottom:32px;">
+            <span style="font-size:24px;font-weight:700;color:#fafafa;letter-spacing:-0.5px;">
+              <span style="color:#FF6B35;">●</span> Orderly
+            </span>
+          </td>
+        </tr>
+        <!-- Card -->
+        <tr>
+          <td style="background-color:#111113;border:1px solid #27272a;border-radius:12px;padding:40px;">
+            <p style="margin:0 0 8px 0;font-size:13px;font-weight:600;color:#a1a1aa;text-transform:uppercase;letter-spacing:1px;">Recordatorio de facturación</p>
+            <h1 style="margin:0 0 16px 0;font-size:26px;font-weight:700;color:#fafafa;line-height:1.3;">Renovación próxima, {{NAME}}</h1>
+            <p style="margin:0 0 24px 0;font-size:15px;color:#a1a1aa;line-height:1.6;">
+              Tu suscripción al plan <strong style="color:#fafafa;">{{PLAN_NAME}}</strong> para <strong style="color:#fafafa;">{{BUSINESS_NAME}}</strong> se renovará automáticamente.
+            </p>
+            <!-- Billing detail -->
+            <table cellpadding="0" cellspacing="0" style="width:100%;margin-bottom:28px;">
+              <tr>
+                <td style="padding:20px;background-color:#18181b;border:1px solid #27272a;border-radius:8px;">
+                  <table cellpadding="0" cellspacing="0" style="width:100%;">
+                    <tr>
+                      <td style="padding:8px 0;border-bottom:1px solid #27272a;">
+                        <table cellpadding="0" cellspacing="0" style="width:100%;">
+                          <tr>
+                            <td style="font-size:13px;color:#71717a;">Plan</td>
+                            <td align="right" style="font-size:13px;font-weight:600;color:#fafafa;">{{PLAN_NAME}}</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;border-bottom:1px solid #27272a;">
+                        <table cellpadding="0" cellspacing="0" style="width:100%;">
+                          <tr>
+                            <td style="font-size:13px;color:#71717a;">Negocio</td>
+                            <td align="right" style="font-size:13px;font-weight:600;color:#fafafa;">{{BUSINESS_NAME}}</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:8px 0;">
+                        <table cellpadding="0" cellspacing="0" style="width:100%;">
+                          <tr>
+                            <td style="font-size:13px;color:#71717a;">Fecha de renovación</td>
+                            <td align="right" style="font-size:13px;font-weight:600;color:#FF6B35;">{{RENEWAL_DATE}}</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+            <p style="margin:0 0 24px 0;font-size:13px;color:#71717a;line-height:1.6;">
+              El cobro se realizará automáticamente al método de pago registrado. Si deseas cambiar tu plan o método de pago, hazlo antes de la fecha de renovación.
+            </p>
+            <!-- CTA Button -->
+            <table cellpadding="0" cellspacing="0" style="margin:0 0 28px 0;">
+              <tr>
+                <td style="background-color:#FF6B35;border-radius:8px;">
+                  <a href="{{BILLING_LINK}}" style="display:inline-block;padding:14px 32px;font-size:15px;font-weight:600;color:#ffffff;text-decoration:none;border-radius:8px;">
+                    Gestionar facturación
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <hr style="border:none;border-top:1px solid #27272a;margin:24px 0;">
+            <p style="margin:0;font-size:13px;color:#71717a;line-height:1.5;">
+              ¿Preguntas sobre tu factura? Escríbenos a <a href="mailto:support@orderlymyapp.com" style="color:#FF6B35;text-decoration:none;">support@orderlymyapp.com</a>.
+            </p>
+          </td>
+        </tr>
+        <!-- Footer -->
+        <tr>
+          <td align="center" style="padding-top:24px;">
+            <p style="margin:0;font-size:12px;color:#52525b;">
+              © {{YEAR}} Orderly · <a href="mailto:support@orderlymyapp.com" style="color:#71717a;text-decoration:none;">support@orderlymyapp.com</a>
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

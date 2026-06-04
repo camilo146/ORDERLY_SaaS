@@ -1,0 +1,27 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="brand">
+      <span class="brand-dot">●</span> Orderly
+    </div>
+
+    @if (status() === 'loading') {
+      <div class="state-icon loading-icon">⏳</div>
+      <h1 class="title">Verificando tu correo</h1>
+      <p class="subtitle">Un momento, por favor...</p>
+    }
+
+    @if (status() === 'success') {
+      <div class="state-icon success-icon">✅</div>
+      <h1 class="title">¡Correo verificado!</h1>
+      <p class="subtitle">{{ message() }}</p>
+      <a routerLink="/login" class="btn btn-primary btn-block">Iniciar sesión</a>
+    }
+
+    @if (status() === 'error') {
+      <div class="state-icon error-icon">❌</div>
+      <h1 class="title">Enlace inválido</h1>
+      <p class="subtitle">{{ message() }}</p>
+      <a routerLink="/login" class="btn btn-secondary btn-block">Volver al login</a>
+    }
+  </div>
+</div>
