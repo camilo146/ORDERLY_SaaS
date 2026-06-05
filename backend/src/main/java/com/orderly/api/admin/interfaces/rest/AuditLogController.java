@@ -2,7 +2,10 @@ package com.orderly.api.admin.interfaces.rest;
 
 import com.orderly.api.admin.application.AuditLogService;
 import com.orderly.api.admin.domain.model.AdminAuditLog;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,6 +18,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/ceo/audit-logs")
 @PreAuthorize("hasRole('SUPER_ADMIN')")
+@Validated
 public class AuditLogController {
 
     private final AuditLogService auditLogService;
@@ -24,8 +28,9 @@ public class AuditLogController {
     }
 
     @GetMapping
-    public List<AuditLogResponse> findRecent(@RequestParam(defaultValue = "50") int limit) {
-        return auditLogService.findRecent(Math.min(limit, 200))
+    public List<AuditLogResponse> findRecent(
+            @RequestParam(defaultValue = "50") @Min(1) @Max(200) int limit) {
+        return auditLogService.findRecent(limit)
                 .stream()
                 .map(AuditLogResponse::from)
                 .toList();

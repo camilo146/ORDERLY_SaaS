@@ -19,43 +19,46 @@ import java.util.concurrent.ConcurrentHashMap;
  * Sliding-window rate limiter for authentication endpoints.
  *
  * Limits:
- *   POST /api/v1/auth/login    → 5 attempts / minute / IP
- *   POST /api/v1/auth/register → 3 attempts / minute / IP
+ *   POST /api/v1/auth/login              → 5 attempts / minute / IP
+ *   POST /api/v1/auth/register           → 3 attempts / minute / IP
+ *   POST /api/v1/auth/forgot-password    → 3 attempts / minute / IP
+ *   POST /api/v1/auth/reset-password     → 5 attempts / minute / IP
+ *   POST /api/v1/auth/resend-verification→ 2 attempts / minute / IP
+ *   GET  /api/v1/auth/verify-email       → 10 attempts / minute / IP
  *
  * Security properties:
- * - WindowCounter uses a synchronized method to prevent the TOCTOU race condition
- *   that existed in the previous AtomicInteger implementation (where reset and
- *   increment were not atomic with respect to each other).
- * - X-Forwarded-For is only trusted when the direct client IP (remoteAddr) is in
- *   the configured trusted-proxy list (ORDERLY_TRUSTED_PROXY_IPS). Without that
- *   configuration, X-Forwarded-For is completely ignored, preventing IP spoofing.
- * - Counters are periodically evicted to prevent unbounded memory growth.
+ * - Uses Redis as the primary counter store so limits survive restarts and work
+ *   correctly across multiple backend instances (horizontal scaling).
+ * - Falls back to an in-memory ConcurrentHashMap if Redis is unavailable ("fail open").
+ * - WindowCounter uses a synchronized method to prevent the TOCTOU race condition.
+ * - X-Forwarded-For is only trusted when remoteAddr is a configured trusted proxy.
  */
 @Component
 public class AuthRateLimitInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(AuthRateLimitInterceptor.class);
 
-    private static final int LOGIN_MAX_PER_MINUTE             = 5;
-    private static final int REGISTER_MAX_PER_MINUTE          = 3;
-    private static final int FORGOT_PASSWORD_MAX_PER_MINUTE   = 3;
-    private static final int RESET_PASSWORD_MAX_PER_MINUTE    = 5;
+    private static final int LOGIN_MAX_PER_MINUTE               = 5;
+    private static final int REGISTER_MAX_PER_MINUTE            = 3;
+    private static final int FORGOT_PASSWORD_MAX_PER_MINUTE     = 3;
+    private static final int RESET_PASSWORD_MAX_PER_MINUTE      = 5;
     private static final int RESEND_VERIFICATION_MAX_PER_MINUTE = 2;
-    private static final int VERIFY_EMAIL_MAX_PER_MINUTE      = 10;
-    private static final long WINDOW_MILLIS = 60_000L;
-    private static final long STALE_THRESHOLD_MILLIS = 10 * WINDOW_MILLIS;
-    private static final long CLEANUP_INTERVAL_MILLIS = 5 * WINDOW_MILLIS;
+    private static final int VERIFY_EMAIL_MAX_PER_MINUTE        = 10;
+    private static final long WINDOW_SECONDS       = 60L;
+    private static final long WINDOW_MILLIS        = WINDOW_SECONDS * 1000L;
+    private static final long STALE_THRESHOLD_MILLIS  = 10 * WINDOW_MILLIS;
+    private static final long CLEANUP_INTERVAL_MILLIS =  5 * WINDOW_MILLIS;
 
-    /**
-     * Comma/semicolon-separated list of trusted reverse-proxy IP addresses.
-     * Only when the incoming remoteAddr matches one of these will X-Forwarded-For be trusted.
-     * Empty (default) means X-Forwarded-For is never trusted.
-     */
     @Value("${orderly.security.trusted-proxy-ips:}")
     private String trustedProxyIps;
 
-    private final Map<String, WindowCounter> counters = new ConcurrentHashMap<>();
+    private final RedisRateLimiter redisRateLimiter;
+    private final Map<String, WindowCounter> fallbackCounters = new ConcurrentHashMap<>();
     private volatile long lastCleanup = Instant.now().toEpochMilli();
+
+    public AuthRateLimitInterceptor(RedisRateLimiter redisRateLimiter) {
+        this.redisRateLimiter = redisRateLimiter;
+    }
 
     @Override
     public boolean preHandle(
@@ -68,17 +71,20 @@ public class AuthRateLimitInterceptor implements HandlerInterceptor {
             return true;
         }
 
-        evictStaleCounters();
-
-        String ip = resolveClientIp(request);
-        int max = resolveMax(path);
+        String ip  = resolveClientIp(request);
+        int    max = resolveMax(path);
         String key = ip + "::" + path;
 
-        WindowCounter counter = counters.computeIfAbsent(key, k -> new WindowCounter());
-        int current = counter.incrementAndGet();
+        long count = redisRateLimiter.increment(key, WINDOW_SECONDS);
 
-        if (current > max) {
-            log.warn("[RATE-LIMIT] IP={} path={} attempts={}", ip, path, current);
+        if (count == -1L) {
+            // Redis unavailable: fall back to in-memory counter (single-instance guarantee only)
+            evictStaleCounters();
+            count = fallbackCounters.computeIfAbsent(key, k -> new WindowCounter()).incrementAndGet();
+        }
+
+        if (count > max) {
+            log.warn("[RATE-LIMIT] IP={} path={} attempts={}", ip, path, count);
             response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
             response.setHeader("Retry-After", "60");
             response.setContentType("application/json");
@@ -147,7 +153,7 @@ public class AuthRateLimitInterceptor implements HandlerInterceptor {
     private void evictStaleCounters() {
         long now = Instant.now().toEpochMilli();
         if (now - lastCleanup > CLEANUP_INTERVAL_MILLIS) {
-            counters.entrySet().removeIf(e -> e.getValue().isStale(STALE_THRESHOLD_MILLIS));
+            fallbackCounters.entrySet().removeIf(e -> e.getValue().isStale(STALE_THRESHOLD_MILLIS));
             lastCleanup = now;
         }
     }

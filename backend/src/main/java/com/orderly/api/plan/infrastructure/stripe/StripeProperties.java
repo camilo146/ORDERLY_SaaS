@@ -1,5 +1,6 @@
 package com.orderly.api.plan.infrastructure.stripe;
 
+import com.orderly.api.shared.domain.DomainException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
@@ -28,7 +29,7 @@ public record StripeProperties(
             case "starter"  -> annual ? prices.starterAnnual()  : prices.starterMonthly();
             case "growth"   -> annual ? prices.growthAnnual()   : prices.growthMonthly();
             case "business" -> annual ? prices.businessAnnual() : prices.businessMonthly();
-            default -> throw new IllegalArgumentException("Unknown plan code: " + planCode);
+            default -> throw new DomainException("Plan code no válido: " + planCode);
         };
     }
 

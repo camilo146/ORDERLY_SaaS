@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -46,10 +47,10 @@ public class EmailAdminController {
     // ── Request / Response records ────────────────────────────────────────────
 
     public record SendEmailRequest(
-            @Email @NotBlank String recipientEmail,
-            String recipientName,
-            @NotBlank String subject,
-            @NotBlank String bodyText
+            @Email @NotBlank @Size(max = 254) String recipientEmail,
+            @Size(max = 100) String recipientName,
+            @NotBlank @Size(max = 200) String subject,
+            @NotBlank @Size(max = 10_000) String bodyText
     ) {}
 
     public record EmailLogResponse(

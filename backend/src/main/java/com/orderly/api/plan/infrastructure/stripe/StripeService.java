@@ -95,7 +95,8 @@ public class StripeService {
             return customerId;
 
         } catch (StripeException e) {
-            throw new DomainException("Stripe customer operation failed: " + e.getMessage());
+            log.error("Stripe customer operation failed for business {}: {}", businessId, e.getMessage());
+            throw new DomainException("No se pudo procesar la operación de pago. Intenta de nuevo.");
         }
     }
 
@@ -134,7 +135,8 @@ public class StripeService {
             return session.getUrl();
 
         } catch (StripeException e) {
-            throw new DomainException("Failed to create checkout session: " + e.getMessage());
+            log.error("Stripe checkout session creation failed for business {}: {}", businessId, e.getMessage());
+            throw new DomainException("No se pudo iniciar el proceso de pago. Intenta de nuevo.");
         }
     }
 
@@ -152,7 +154,8 @@ public class StripeService {
             return session.getUrl();
 
         } catch (StripeException e) {
-            throw new DomainException("Failed to create billing portal session: " + e.getMessage());
+            log.error("Stripe portal session creation failed for customer {}: {}", customerId, e.getMessage());
+            throw new DomainException("No se pudo abrir el portal de facturación. Intenta de nuevo.");
         }
     }
 

@@ -32,6 +32,16 @@ public class InMemoryUserAccountService {
 
     private static final String DEFAULT_SEED_PASSWORD = "Orderly123!";
 
+    // Pre-computed BCrypt hash used to equalize response time when the requested email does
+    // not exist in the database. Without this, response time reveals whether the email is
+    // registered: no-match exits in ~2 ms, password-check takes ~100 ms (BCrypt cost).
+    // Computing this once at class load time avoids per-request overhead.
+    private static final String TIMING_DUMMY_HASH;
+    static {
+        TIMING_DUMMY_HASH = new BCryptPasswordEncoder().encode(
+                "orderly-timing-constant-not-a-real-password-" + System.nanoTime());
+    }
+
     // Each account resolves its own env var first, then the shared fallback, then the default.
     private static final String SUPER_ADMIN_PASSWORD =
             resolvePassword("ORDERLY_SUPERADMIN_PASSWORD", "ORDERLY_SEED_PASSWORD", DEFAULT_SEED_PASSWORD);
@@ -48,7 +58,15 @@ public class InMemoryUserAccountService {
     }
 
     public UserPrincipal authenticate(String email, String rawPassword) {
-        UserJpaEntity entity = findEntity(email);
+        var entityOpt = userRepository.findByEmail(normalize(email));
+        if (entityOpt.isEmpty()) {
+            // Run a full BCrypt check against a dummy hash to equalize response time.
+            // Without this, callers can enumerate valid emails by measuring response latency:
+            // a missing email exits in ~2 ms; a valid email takes ~100 ms (BCrypt cost factor).
+            passwordEncoder.matches(rawPassword, TIMING_DUMMY_HASH);
+            throw new DomainException("Invalid email or password.");
+        }
+        UserJpaEntity entity = entityOpt.get();
         if (!passwordEncoder.matches(rawPassword, entity.getPasswordHash())) {
             throw new DomainException("Invalid email or password.");
         }

@@ -253,8 +253,15 @@ public class BusinessAdminService {
     }
 
     private String ipFrom(HttpServletRequest req) {
-        String forwarded = req.getHeader("X-Forwarded-For");
-        return (forwarded != null && !forwarded.isBlank()) ? forwarded.split(",")[0].trim() : req.getRemoteAddr();
+        // X-Real-IP is set by nginx to $remote_addr (the TCP-level source IP), which cannot
+        // be spoofed by the client regardless of what they put in X-Forwarded-For.
+        // Using X-Forwarded-For here would let any caller inject an arbitrary IP into the
+        // audit log, making the log useless as a forensic artifact.
+        String realIp = req.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isBlank()) {
+            return realIp.strip();
+        }
+        return req.getRemoteAddr();
     }
 
     public record ImpersonationResponse(
