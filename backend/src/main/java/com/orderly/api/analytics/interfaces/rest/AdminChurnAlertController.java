@@ -28,11 +28,10 @@ public class AdminChurnAlertController {
      * Returns all unresolved churn alerts.
      */
     @GetMapping
-    // [SECURITY FIX VUL-05] Corregido role mismatch: 'SUPERADMIN' y 'OPS' no
-    // existían en el sistema.
-    // Los roles reales son SUPER_ADMIN y OPERATOR. El bug bloqueaba el acceso a
-    // superadmins legítimos.
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','OPERATOR')")
+    // Restringido a SUPER_ADMIN: los churn alerts son cross-tenant (incluyen businessId
+    // y descripción de cada negocio). Exponer esto a OPERATOR permitía a cualquier
+    // operador ver datos privados de todos los negocios en la plataforma.
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<List<ChurnAlertResponse>> getUnresolvedAlerts() {
         List<ChurnAlertResponse> alerts = alertRepo.findAllByResolvedFalseOrderByCreatedAtDesc()
                 .stream().map(ChurnAlertResponse::from).toList();
@@ -44,8 +43,7 @@ public class AdminChurnAlertController {
      * Marks a churn alert as resolved.
      */
     @PatchMapping("/{id}/resolve")
-    // [SECURITY FIX VUL-05] Idem — usar roles reales del sistema
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','OPERATOR')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public ResponseEntity<Void> resolveAlert(@PathVariable UUID id) {
         var opt = alertRepo.findById(id);
         if (opt.isEmpty())

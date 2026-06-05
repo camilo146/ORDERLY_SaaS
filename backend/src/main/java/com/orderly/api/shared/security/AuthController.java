@@ -8,6 +8,7 @@ import com.orderly.api.email.application.UserEmailService;
 import com.orderly.api.product.application.CreateProductCommand;
 import com.orderly.api.product.application.ProductCatalogUseCase;
 import com.orderly.api.shared.security.persistence.UserJpaEntity;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -91,8 +92,28 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public AuthResponse me(@AuthenticationPrincipal UserPrincipal principal) {
-        return toAuthResponse(principal);
+    public AuthResponse me(@AuthenticationPrincipal UserPrincipal principal, HttpServletRequest request) {
+        // Return the existing token from the request rather than minting a new one.
+        // Generating a fresh JWT on /me lets an attacker with a stolen token call this
+        // endpoint in a loop, renewing the expiry indefinitely without re-authenticating.
+        String existingToken = extractBearerToken(request);
+        List<BusinessResponse> businesses = businessRepository.findAllByOwnerId(principal.userId())
+                .stream()
+                .map(BusinessResponse::from)
+                .toList();
+        return new AuthResponse(
+                existingToken,
+                new AuthResponse.AuthUserResponse(
+                        principal.userId().toString(),
+                        principal.fullName(),
+                        principal.getUsername(),
+                        principal.role()),
+                businesses);
+    }
+
+    private static String extractBearerToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        return (header != null && header.startsWith("Bearer ")) ? header.substring(7) : null;
     }
 
     @PostMapping("/verify-email")

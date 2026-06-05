@@ -6,6 +6,7 @@ import com.orderly.api.business.domain.model.Business;
 import com.orderly.api.business.domain.port.BusinessRepository;
 import com.orderly.api.messaging.application.BusinessTemplateService;
 import com.orderly.api.messaging.application.WhatsAppChannelService;
+import com.orderly.api.shared.tenant.TenantAccessService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.bind.annotation.*;
@@ -25,24 +26,28 @@ public class BusinessSettingsController {
     private final FindBusinessUseCase findBusinessUseCase;
     private final EvolutionApiService evolutionApiService;
     private final BusinessRepository businessRepository;
+    private final TenantAccessService tenantAccessService;
 
     public BusinessSettingsController(
             WhatsAppChannelService channelService,
             BusinessTemplateService templateService,
             FindBusinessUseCase findBusinessUseCase,
             EvolutionApiService evolutionApiService,
-            BusinessRepository businessRepository) {
+            BusinessRepository businessRepository,
+            TenantAccessService tenantAccessService) {
         this.channelService = channelService;
         this.templateService = templateService;
         this.findBusinessUseCase = findBusinessUseCase;
         this.evolutionApiService = evolutionApiService;
         this.businessRepository = businessRepository;
+        this.tenantAccessService = tenantAccessService;
     }
 
     // ── WhatsApp QR (Evolution API) ─────────────────────────────────────────────
 
     @GetMapping("/whatsapp-qr")
     public EvolutionApiService.QrResponse getWhatsAppQr(@PathVariable UUID businessId) {
+        tenantAccessService.validateTenantAccess(businessId);
         try {
             Business business = findBusinessUseCase.findById(businessId);
             return evolutionApiService.getOrCreateQr(businessId, business.slug());
@@ -53,12 +58,14 @@ public class BusinessSettingsController {
 
     @GetMapping("/whatsapp-status")
     public java.util.Map<String, String> getWhatsAppStatus(@PathVariable UUID businessId) {
+        tenantAccessService.validateTenantAccess(businessId);
         String state = evolutionApiService.getConnectionState(businessId);
         return java.util.Map.of("state", state);
     }
 
     @DeleteMapping("/whatsapp-instance")
     public void deleteWhatsAppInstance(@PathVariable UUID businessId) {
+        tenantAccessService.validateTenantAccess(businessId);
         evolutionApiService.deleteInstance(businessId);
     }
 
@@ -66,11 +73,13 @@ public class BusinessSettingsController {
 
     @GetMapping("/whatsapp-channel")
     public WhatsAppChannelService.ChannelConfig getChannel(@PathVariable UUID businessId) {
+        tenantAccessService.validateTenantAccess(businessId);
         return channelService.getOrEmpty(businessId);
     }
 
     @PostMapping("/whatsapp-channel/confirm")
     public WhatsAppChannelService.ChannelConfig confirmChannel(@PathVariable UUID businessId) {
+        tenantAccessService.validateTenantAccess(businessId);
         return channelService.confirmConnection(businessId);
     }
 
@@ -78,6 +87,7 @@ public class BusinessSettingsController {
     public WhatsAppChannelService.ChannelConfig saveChannel(
             @PathVariable UUID businessId,
             @Valid @RequestBody ChannelRequest request) {
+        tenantAccessService.validateTenantAccess(businessId);
         return channelService.save(businessId, new WhatsAppChannelService.ChannelConfig(
                 businessId.toString(),
                 request.displayName() != null ? request.displayName() : "",
@@ -94,6 +104,7 @@ public class BusinessSettingsController {
     @GetMapping("/message-templates")
     public List<BusinessTemplateService.TemplateDto> listTemplates(
             @PathVariable UUID businessId) {
+        tenantAccessService.validateTenantAccess(businessId);
         String businessType;
         try {
             Business biz = findBusinessUseCase.findById(businessId);
@@ -109,6 +120,7 @@ public class BusinessSettingsController {
             @PathVariable UUID businessId,
             @PathVariable String eventType,
             @Valid @RequestBody TemplateBodyRequest request) {
+        tenantAccessService.validateTenantAccess(businessId);
         String businessType;
         try {
             Business biz = findBusinessUseCase.findById(businessId);
@@ -126,6 +138,7 @@ public class BusinessSettingsController {
 
     @GetMapping("/bot-identity")
     public BotIdentityResponse getBotIdentity(@PathVariable UUID businessId) {
+        tenantAccessService.validateTenantAccess(businessId);
         Business business = findBusinessUseCase.findById(businessId);
         return new BotIdentityResponse(business.botName(), business.botEmoji());
     }
@@ -134,6 +147,7 @@ public class BusinessSettingsController {
     public BotIdentityResponse saveBotIdentity(
             @PathVariable UUID businessId,
             @Valid @RequestBody BotIdentityRequest request) {
+        tenantAccessService.validateTenantAccess(businessId);
         String name = (request.botName() != null && !request.botName().isBlank()) ? request.botName().trim()
                 : "Orderly";
         String emoji = (request.botEmoji() != null && !request.botEmoji().isBlank()) ? request.botEmoji().trim() : "🤖";
