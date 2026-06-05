@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -102,7 +103,10 @@ public class SecurityConfig {
                         .permitAll()
                         .anyRequest().authenticated())
                 .headers(headers -> headers
-                        .frameOptions(fo -> fo.sameOrigin())
+                        // DENY es más estricto que SAMEORIGIN; la app no necesita ser embebida.
+                        // La CSP frame-ancestors 'none' es el mecanismo principal; X-Frame-Options
+                        // es fallback para browsers más antiguos que no soportan CSP.
+                        .frameOptions(fo -> fo.deny())
                         .httpStrictTransportSecurity(hsts -> hsts
                                 .includeSubDomains(true)
                                 .maxAgeInSeconds(31_536_000))
@@ -110,6 +114,10 @@ public class SecurityConfig {
                         }) // X-Content-Type-Options: nosniff
                         .referrerPolicy(rp -> rp
                                 .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                        // Permissions-Policy: desactiva APIs de hardware no utilizadas.
+                        .addHeaderWriter(new StaticHeadersWriter(
+                                "Permissions-Policy",
+                                "camera=(), microphone=(), geolocation=(), payment=(), usb=()"))
                         // Content-Security-Policy: prevents XSS exploitation even if a script-injection
                         // vulnerability exists. Inline scripts and eval() are disallowed.
                         .contentSecurityPolicy(csp -> csp.policyDirectives(

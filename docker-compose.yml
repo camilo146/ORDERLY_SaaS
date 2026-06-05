@@ -12,6 +12,8 @@ services:
     image: postgres:16-alpine
     container_name: orderly-postgres
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     environment:
       POSTGRES_DB: orderly
       POSTGRES_USER: ${POSTGRES_USER}
@@ -31,6 +33,8 @@ services:
     image: redis:7-alpine
     container_name: orderly-redis
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     command: >-
       redis-server
       --appendonly yes
@@ -52,8 +56,13 @@ services:
     image: evoapicloud/evolution-api:latest
     container_name: orderly-evolution
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     ports:
-      - "8085:8080"
+      # Vinculado a localhost: solo accesible desde el host, no desde internet.
+      # El backend accede internamente via http://evolution-api:8080 (red Docker).
+      # Para acceso de admin externo, usar SSH tunnel: ssh -L 8085:localhost:8085 user@server
+      - "127.0.0.1:8085:8080"
     environment:
       - SERVER_URL=${EVOLUTION_PUBLIC_URL}
       - SERVER_PORT=8080
@@ -96,6 +105,8 @@ services:
     image: orderly-backend:latest
     container_name: orderly-backend
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     environment:
       - SPRING_PROFILES_ACTIVE=postgres
       - DATABASE_URL=jdbc:postgresql://postgres:5432/orderly
@@ -107,6 +118,7 @@ services:
       - ORDERLY_JWT_SECRET=${ORDERLY_JWT_SECRET}
       - ORDERLY_JWT_VALIDITY_MINUTES=${ORDERLY_JWT_VALIDITY_MINUTES:-60}
       - ORDERLY_CORS_ORIGINS=${ORDERLY_CORS_ORIGINS}
+      - ORDERLY_TRUSTED_PROXY_IPS=${ORDERLY_TRUSTED_PROXY_IPS:-}
       - EVOLUTION_API_URL=http://evolution-api:8080
       - EVOLUTION_API_KEY=${EVOLUTION_API_KEY}
       - EVOLUTION_API_WEBHOOK_SECRET=${EVOLUTION_WEBHOOK_SECRET}
@@ -154,6 +166,8 @@ services:
     image: orderly-frontend:latest
     container_name: orderly-frontend
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "80:80"
       - "443:443"

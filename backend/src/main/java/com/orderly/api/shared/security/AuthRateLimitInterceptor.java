@@ -36,8 +36,12 @@ public class AuthRateLimitInterceptor implements HandlerInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(AuthRateLimitInterceptor.class);
 
-    private static final int LOGIN_MAX_PER_MINUTE = 5;
-    private static final int REGISTER_MAX_PER_MINUTE = 3;
+    private static final int LOGIN_MAX_PER_MINUTE             = 5;
+    private static final int REGISTER_MAX_PER_MINUTE          = 3;
+    private static final int FORGOT_PASSWORD_MAX_PER_MINUTE   = 3;
+    private static final int RESET_PASSWORD_MAX_PER_MINUTE    = 5;
+    private static final int RESEND_VERIFICATION_MAX_PER_MINUTE = 2;
+    private static final int VERIFY_EMAIL_MAX_PER_MINUTE      = 10;
     private static final long WINDOW_MILLIS = 60_000L;
     private static final long STALE_THRESHOLD_MILLIS = 10 * WINDOW_MILLIS;
     private static final long CLEANUP_INTERVAL_MILLIS = 5 * WINDOW_MILLIS;
@@ -67,7 +71,7 @@ public class AuthRateLimitInterceptor implements HandlerInterceptor {
         evictStaleCounters();
 
         String ip = resolveClientIp(request);
-        int max = path.endsWith("/register") ? REGISTER_MAX_PER_MINUTE : LOGIN_MAX_PER_MINUTE;
+        int max = resolveMax(path);
         String key = ip + "::" + path;
 
         WindowCounter counter = counters.computeIfAbsent(key, k -> new WindowCounter());
@@ -87,7 +91,21 @@ public class AuthRateLimitInterceptor implements HandlerInterceptor {
     }
 
     private boolean isProtected(String path) {
-        return path.endsWith("/auth/login") || path.endsWith("/auth/register");
+        return path.endsWith("/auth/login")
+                || path.endsWith("/auth/register")
+                || path.endsWith("/auth/forgot-password")
+                || path.endsWith("/auth/reset-password")
+                || path.endsWith("/auth/resend-verification")
+                || path.endsWith("/auth/verify-email");
+    }
+
+    private int resolveMax(String path) {
+        if (path.endsWith("/register"))            return REGISTER_MAX_PER_MINUTE;
+        if (path.endsWith("/forgot-password"))     return FORGOT_PASSWORD_MAX_PER_MINUTE;
+        if (path.endsWith("/reset-password"))      return RESET_PASSWORD_MAX_PER_MINUTE;
+        if (path.endsWith("/resend-verification")) return RESEND_VERIFICATION_MAX_PER_MINUTE;
+        if (path.endsWith("/verify-email"))        return VERIFY_EMAIL_MAX_PER_MINUTE;
+        return LOGIN_MAX_PER_MINUTE;
     }
 
     /**
